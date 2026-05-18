@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>@yield('title', 'Shelf Luxury')</title>
+    
+    <!-- Google Fonts: Playfair Display & Lato -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- CSS Assets -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS with Versioning -->
+    <link rel="stylesheet" href="{{ asset('assets/css/luxury.css') }}?v={{ time() }}">
+    
+    @stack('styles')
+    <style>
+        .hover-gold:hover { color: var(--gold-primary) !important; transition: color 0.3s; }
+        .extra-small { font-size: 0.75rem; white-space: nowrap; flex-shrink: 0; }
+
+        /* Professional Bi-color Luxury Header */
+        .smart-header { 
+            background: #fdfbf7; /* Off-white / Ivory tone for separation */
+            border-bottom: 1px solid rgba(175, 146, 69, 0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            z-index: 1050; /* Ensure it's above everything */
+        }
+        
+        .search-wrapper { 
+            background: white; 
+            border-radius: 25px; 
+            padding: 2px 20px; 
+            border: 1px solid rgba(175, 146, 69, 0.2);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .search-wrapper:focus-within {
+            border-color: var(--gold-primary);
+            box-shadow: 0 8px 25px rgba(175, 146, 69, 0.12);
+            transform: translateY(-1px);
+        }
+        .search-input { background: none; border: none; color: #333; outline: none; width: 100%; font-size: 0.9rem; padding: 10px 0; }
+        .search-btn { background: none; border: none; color: var(--gold-primary); font-size: 1rem; }
+
+        .nav-icon-link { color: #444; font-size: 1.2rem; transition: all 0.3s; padding: 10px; position: relative; border-radius: 50%; }
+        .nav-icon-link:hover { color: var(--gold-primary); background: rgba(175, 146, 69, 0.05); transform: translateY(-2px); }
+        .badge-luxury { position: absolute; top: 4px; right: 4px; background: #e52d27; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; font-weight: bold; border: 2px solid #fdfbf7; }
+
+        /* Elegant Category Bar with Glassmorphism */
+        .category-nav-bar { 
+            background: rgba(255, 255, 255, 0.8); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .cat-link { 
+            white-space: nowrap; 
+            color: #555; 
+            font-weight: 600; 
+            font-size: 0.78rem; 
+            text-decoration: none !important; 
+            padding: 14px 20px; 
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid transparent;
+        }
+        .cat-link i { font-size: 0.85rem; margin-right: 8px; color: var(--gold-primary); opacity: 0.7; }
+        .cat-link:hover { color: var(--gold-primary); background: rgba(175, 146, 69, 0.02); }
+        .cat-link.active { color: var(--gold-primary); border-bottom-color: var(--gold-primary); background: rgba(175, 146, 69, 0.04); }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .auth-nav-btn {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #333;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        /* Notification Panel Improvements */
+        .noti-3d-panel {
+            width: 420px;
+            right: -20px;
+            top: calc(100% + 20px);
+            border: none;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.18);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+        }
+        .noti-header {
+            padding: 24px 28px !important;
+            border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+            background: transparent;
+        }
+        .noti-header h6 {
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            color: #1a1a1a;
+            font-family: var(--jakarta, 'Plus Jakarta Sans', sans-serif);
+        }
+        .noti-item {
+            padding: 20px 28px !important;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border-bottom: 1px solid rgba(0,0,0,0.03) !important;
+            cursor: pointer;
+            position: relative;
+        }
+        .noti-item:hover {
+            background: rgba(175, 146, 69, 0.03);
+            transform: translateX(5px);
+        }
+        .noti-item.unread {
+            background: rgba(175, 146, 69, 0.02);
+            border-left: 3px solid var(--gold-primary);
+        }
+        .noti-item .noti-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .noti-item .noti-desc {
+            font-size: 0.82rem;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .noti-item .noti-time {
+            font-size: 0.72rem;
+            color: #aaa;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .noti-body::-webkit-scrollbar { width: 4px; }
+        .noti-body::-webkit-scrollbar-track { background: transparent; }
+        .noti-body::-webkit-scrollbar-thumb { background: rgba(175, 146, 69, 0.2); border-radius: 10px; }
+
+        #noti-badge {
+            background: #d4af37;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Search Suggestions */
+        .search-wrapper { position: relative; z-index: 1060; }
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            margin-top: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 9999;
+            overflow: hidden;
+            display: none;
+            border: 1px solid rgba(175, 146, 69, 0.1);
+        }
+        .search-suggestions.active { display: block; }
+        .suggestion-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.2s;
+            text-decoration: none !important;
+            color: #333 !important;
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover { background: rgba(175, 146, 69, 0.05); }
+        .suggestion-img {
+            width: 40px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .suggestion-info { flex: 1; min-width: 0; }
+        .suggestion-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .suggestion-price {
+            font-size: 0.8rem;
+            color: #af9245; /* Gold primary fallback */
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body data-barba="wrapper" class="prank-{{ cache()->get('prank_mode', 'none') }}">
+
+    <div id="luxury-cursor"></div>
+    <div id="luxury-cursor-follower"></div>
+    <div class="luxury-overlay"></div>
+
+    <div class="barba-transition-layer">
+        <div class="logo-loader">SHELF LUXURY</div>
+    </div>
+
+    <!-- Header Luxury với bố cục TGDĐ -->
+    <header class="smart-header sticky-top">
+        <div class="container py-3">
+            <div class="row align-items-center g-3">
+                <!-- Logo -->
+                <div class="col-lg-3 col-md-3">
+                    <a href="{{ url('/') }}" class="text-decoration-none font-luxury fs-3 text-dark fw-bold no-barba" data-barba-prevent>
+                        SHELF LUXURY<span style="color: var(--gold-primary)">.</span>
+                    </a>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="col-lg-5 col-md-5">
+                    <form action="{{ route('sanpham.search') }}" method="GET" class="search-wrapper">
+                        <div class="d-flex align-items-center">
+                            <input type="text" name="keyword" value="{{ request('keyword') }}" id="main-search-input" class="search-input" placeholder="Tìm kiếm d?ng c?p tri thức..." autocomplete="off">
+                            <button type="submit" class="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+                        </div>
+                        <div id="search-suggestions" class="search-suggestions"></div>
+                    </form>
+                </div>
+
+                <!-- Icons & Auth -->
+                <div class="col-lg-4 col-md-4">
+                    <div class="d-flex align-items-center justify-content-end gap-2">
+                        @auth
+                            <div class="position-relative notification-wrapper">
+                                <a href="javascript:void(0)" class="nav-icon-link" id="noti-trigger">
+                                    <i class="fa-regular fa-bell"></i>
+                                    <span id="noti-badge" class="badge-luxury {{ ($unreadCount ?? 0) > 0 ? '' : 'd-none' }}">{{ $unreadCount ?? 0 }}</span>
+                                </a>
+                                <!-- Notification Panel -->
+                                <div class="noti-3d-panel shadow-2xl" id="noti-panel">
+                                    <div class="noti-header d-flex justify-content-between align-items-center p-4 border-bottom">
+                                        <h6 class="fw-bold m-0 text-dark ls-1">THÔNG BÁO</h6>
+                                        @if(($unreadCount ?? 0) > 0)
+                                            <button onclick="markAllAsRead()" class="btn btn-link p-0 text-muted extra-small fw-bold text-decoration-none hover-gold">ĐÁNH DẤU ĐÃ ĐỌC</button>
+                                        @endif
+                                    </div>
+                                    <div class="noti-body custom-scrollbar" style="max-height: 350px; overflow-y: auto;">
+                                        @auth
+                                            @php
+                                                $customer = \App\Models\KhachHang::where('MaTK', auth()->user()->MaTK)->first();
+                                                $notifications = $customer ? \App\Models\ThongBao::where('MaKH', $customer->MaKH)->orderBy('NgayGui', 'desc')->take(5)->get() : collect();
+                                            @endphp
+                                            @forelse($notifications as $tb)
+                                                <div class="noti-item {{ $tb->TrangThaiDoc ? 'opacity-75' : 'unread' }}" 
+                                                     onclick="markAsRead({{ $tb->MaTB }}, '{{ $tb->LienKet }}')">
+                                                    <span class="noti-title">{{ $tb->TieuDe }}</span>
+                                                    <span class="noti-desc">{{ Str::limit($tb->NoiDung, 90) }}</span>
+                                                    <div class="noti-time">{{ \Carbon\Carbon::parse($tb->NgayGui)->diffForHumans() }}</div>
+                                                </div>
+                                            @empty
+                                                <div class="text-center py-5">
+                                                    <i class="fa-solid fa-bell-slash fs-1 text-light mb-3"></i>
+                                                    <p class="text-muted small mb-0">Bạn chưa có thông báo nào.</p>
+                                                </div>
+                                            @endforelse
+                                        @endauth
+                                    </div>
+                                </div>
+                            </div>
+
+                            <a href="{{ route('favorites.index') }}" class="nav-icon-link no-barba" data-barba-prevent title="Yêu thích">
+                                <i class="fa-regular fa-heart"></i>
+                                @php
+                                    $customer = \App\Models\KhachHang::where('MaTK', auth()->user()->MaTK)->first();
+                                    $favCount = $customer ? $customer->favorites()->count() : 0;
+                                @endphp
+                                <span id="fav-count-badge" class="badge-luxury {{ $favCount > 0 ? '' : 'd-none' }}">{{ $favCount }}</span>
+                            </a>
+                        @endauth
+
+                        <a href="{{ route('cart.index') }}" class="nav-icon-link no-barba" data-barba-prevent title="Giỏ hàng">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <span id="cart-count-badge" class="badge-luxury {{ ($cartCount ?? 0) > 0 ? '' : 'd-none' }}">{{ $cartCount ?? 0 }}</span>
+                        </a>
+
+                        @auth
+                            <div class="ms-2 d-flex align-items-center">
+                                <a href="{{ route('customer.profile') }}" class="text-dark fw-bold small text-decoration-none no-barba hover-gold" data-barba-prevent>
+                                    <i class="fa-regular fa-user me-1"></i> {{ auth()->user()->TenDN }}
+                                </a>
+                                <form action="{{ route('logout') }}" method="POST" class="ms-3">
+                                    @csrf
+                                    <button type="submit" class="btn btn-link p-0 text-muted small text-decoration-none hover-gold no-barba" data-barba-prevent>Thoát</button>
+                                </form>
+                            </div>
+                        @else
+                            <a href="{{ route('login') }}" class="btn btn-dark rounded-pill px-4 py-2 small ms-3 no-barba" data-barba-prevent>Đăng nhập</a>
+                        @endauth
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Horizontal Nav Bar -->
+        <div class="category-nav-bar d-none d-md-block">
+            <div class="container">
+                <div class="d-flex align-items-center no-scrollbar overflow-x-auto">
+                    <a href="{{ route('sanpham.index') }}" class="cat-link {{ Route::is('sanpham.index') && !isset($categoryId) ? 'active' : '' }} no-barba" data-barba-prevent>
+                        <i class="fa-solid fa-house-laptop"></i> Cửa hàng
+                    </a>
+                    @if(isset($headerCategories))
+                        @foreach($headerCategories as $dm)
+                            <a href="{{ route('danhmuc.show', $dm->MaDM) }}" class="cat-link {{ (isset($categoryId) && $categoryId == $dm->MaDM) ? 'active' : '' }} no-barba" data-barba-prevent>
+                                <i class="fa-solid fa-layer-group"></i> {{ $dm->TenDM }}
+                            </a>
+                        @endforeach
+                    @endif
+                    <a href="{{ route('baiviet.index') }}" class="cat-link {{ Route::is('baiviet.index') ? 'active' : '' }} no-barba" data-barba-prevent>
+                        <i class="fa-solid fa-couch"></i> Cảm hứng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main data-barba="container" data-barba-namespace="{{ Route::currentRouteName() ?? 'home' }}" class="barba-container">
+        <div class="page-content" style="padding-top: 75px;">
+            @yield('content')
+        </div>
+        
+        <footer class="bg-white text-center py-5 border-top mt-auto" style="border-color: var(--border-color)!important;">
+            <div class="container">
+                <h4 class="font-luxury mb-3 fw-bold">SHELF LUXURY<span style="color: var(--gold-primary)">.</span></h4>
+                <p class="small text-muted mb-4 mx-auto" style="max-width: 500px;">Nâng tầm không gian sống và kiến tạo giải pháp lưu trữ sang trọng cho ngôi nhà của bạn.</p>
+                <div class="d-flex justify-content-center gap-4 mb-4 text-dark">
+                    <a href="#" class="text-dark"><i class="fa-brands fa-instagram fs-5"></i></a>
+                    <a href="#" class="text-dark"><i class="fa-brands fa-facebook fs-5"></i></a>
+                    <a href="#" class="text-dark"><i class="fa-brands fa-twitter fs-5"></i></a>
+                </div>
+                <p class="extra-small text-muted opacity-75">&copy; {{ date('Y') }} SHELF LUXURY Premium. Giải pháp nội thất chuẩn quốc tế.</p>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/@barba/core"></script>
+    <script src="{{ asset('assets/js/luxury-app.js') }}"></script>
+    
+    <script>
+        // Cursor logic, reveal logic, notification logic
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('active');
+            });
+        }, observerOptions);
+
+        function initReveals() {
+            document.querySelectorAll('.product-item, .product-card, .promo-card, section, h2, .bento-item').forEach(el => {
+                el.classList.add('reveal-on-scroll');
+                observer.observe(el);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', initReveals);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const notiTrigger = document.getElementById('noti-trigger');
+            const notiPanel = document.getElementById('noti-panel');
+            if (notiTrigger && notiPanel) {
+                notiTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notiPanel.classList.toggle('active');
+                });
+                document.addEventListener('click', (e) => {
+                    if (!notiPanel.contains(e.target) && !notiTrigger.contains(e.target)) {
+                        notiPanel.classList.remove('active');
+                    }
+                });
+            }
+        });
+
+        function markAsRead(id, link) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch(`/notifications/mark-as-read/${id}`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+            }).then(() => {
+                if(link && link !== '' && link !== 'null') window.location.href = link;
+                else location.reload();
+            });
+        }
+
+        // Search Suggestions Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('main-search-input');
+            const suggestionsPanel = document.getElementById('search-suggestions');
+
+            if (searchInput && suggestionsPanel) {
+                let debounceTimer;
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(debounceTimer);
+                    const keyword = e.target.value.trim();
+
+                    if (keyword.length < 2) {
+                        suggestionsPanel.classList.remove('active');
+                        return;
+                    }
+
+                    debounceTimer = setTimeout(() => {
+                        fetch(`/san-pham/suggest?keyword=${encodeURIComponent(keyword)}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.length > 0) {
+                                    suggestionsPanel.innerHTML = data.map(item => {
+                                        const imgUrl = item.HinhAnh ? 
+                                            (item.HinhAnh.startsWith('http') ? item.HinhAnh : `/assets/images/products/${item.HinhAnh}`) : 
+                                            'https://via.placeholder.com/400x600';
+                                        
+                                        const formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.DonGia);
+                                        
+                                        return `
+                                            <a href="/san-pham/detail/${item.MaSP}" class="suggestion-item no-barba" data-barba-prevent>
+                                                <img src="${imgUrl}" class="suggestion-img" alt="${item.TenSP}">
+                                                <div class="suggestion-info">
+                                                    <div class="suggestion-title">${item.TenSP}</div>
+                                                    <div class="suggestion-price">${formattedPrice}</div>
+                                                </div>
+                                            </a>
+                                        `;
+                                    }).join('');
+                                    suggestionsPanel.classList.add('active');
+                                } else {
+                                    suggestionsPanel.classList.remove('active');
+                                }
+                            })
+                            .catch(err => console.error('Search suggestion error:', err));
+                    }, 300);
+                });
+
+                // Close suggestions when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!searchInput.contains(e.target) && !suggestionsPanel.contains(e.target)) {
+                        suggestionsPanel.classList.remove('active');
+                    }
+                });
+
+                // Re-show suggestions when clicking back into input if it has value
+                searchInput.addEventListener('click', () => {
+                    if (suggestionsPanel.innerHTML.trim() !== '' && searchInput.value.trim().length >= 2) {
+                        suggestionsPanel.classList.add('active');
+                    }
+                });
+            }
+        });
+    </script>
+    @stack('scripts')
+    <!-- Chatbot AI System -->
+    @include('layouts.chatbot')
+</body>
+</html>
+
+
+
+
+
+

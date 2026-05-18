@@ -1,0 +1,250 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\SanPham;
+use App\Models\DanhMuc;
+use App\Models\NhaSanXuat;
+use App\Models\ThuongHieu;
+use App\Models\HinhAnhSanPham;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+
+class AdminSanPhamController extends Controller
+{
+    public function index(Request $request)
+    {
+        $search = $request->get('search');
+        $categoryId = $request->get('category_id');
+        $brandId = $request->get('brand_id');
+        $minPrice = $request->get('min_price');
+        $maxPrice = $request->get('max_price');
+        $stockStatus = $request->get('stock_status');
+
+        $query = SanPham::with(['danhmuc', 'NhaSanXuat', 'ThuongHieus'])->orderBy('MaSP', 'desc');
+
+        if ($search) {
+            $query->where('TenSP', 'LIKE', "%{$search}%");
+        }
+
+        if ($categoryId && $categoryId != 0) {
+            $query->where('MaDM', $categoryId);
+        }
+
+        if ($brandId && $brandId != 0) {
+            $query->where('MaNXB', $brandId);
+        }
+
+        if ($minPrice) {
+            $query->where('DonGia', '>=', $minPrice);
+        }
+
+        if ($maxPrice) {
+            $query->where('DonGia', '<=', $maxPrice);
+        }
+
+        if ($stockStatus === 'out_of_stock') {
+            $query->where('SoLuong', '<=', 0);
+        } elseif ($stockStatus === 'low_stock') {
+            $query->where('SoLuong', '>', 0)->where('SoLuong', '<=', 10);
+        } elseif ($stockStatus === 'in_stock') {
+            $query->where('SoLuong', '>', 10);
+        }
+
+        $list = $query->paginate(10)->withQueryString();
+        $all_categories = DanhMuc::all();
+        $all_nxbs = NhaSanXuat::all();
+
+        return view('admin.sanpham.index', compact('list', 'all_categories', 'all_nxbs'));
+    }
+
+    public function create()
+    {
+        $all_categories = DanhMuc::all();
+        $all_nxbs = NhaSanXuat::all();
+        return view('admin.sanpham.create', compact('all_categories', 'all_nxbs'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'TenSP' => 'required',
+            'DonGia' => 'required|numeric',
+            'SoLuong' => 'required|integer|min:0',
+            'SoLuongDaBan' => 'nullable|integer|min:0',
+            'MaDM' => 'required',
+            'MaNXB' => 'required',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $data = $request->only(['TenSP', 'DonGia', 'MoTa', 'MaDM', 'MaNXB', 'SoLuong', 'Slug', 'MoTaNgan']);
+            $data['SoLuongDaBan'] = $request->get('SoLuongDaBan', 0);
+            $product = SanPham::create($data);
+
+            // Lưu chi tiết sản phẩm (Kệ gia dụng)
+            $product->chiTiet()->create([
+                'ChatLieu' => $request->ChatLieu,
+                'KichThuoc' => $request->KichThuoc,
+                'TaiTrong' => $request->TaiTrong,
+                'SoTang' => $request->SoTang,
+                'MauSac' => $request->MauSac,
+                'NoiDungChiTiet' => $request->NoiDungChiTiet,
+            ]);
+
+            if ($request->hasFile('images')) {
+                $anhChinhIndex = $request->get('anh_chinh', 0);
+                $destinationPath = public_path('assets/images/products');
+                if (!File::exists($destinationPath)) {
+                    File::makeDirectory($destinationPath, 0755, true);
+                }
+                foreach ($request->file('images') as $index => $file) {
+                    $filename = $product->MaSP . "_" . time() . "_" . $index . "." . $file->getClientOriginalExtension();
+                    $file->move($destinationPath, $filename);
+
+                    $isMain = ($index == $anhChinhIndex) ? 1 : 0;
+                    HinhAnhSanPham::create([
+                        'MaSP' => $product->MaSP,
+                        'DuongDan' => $filename,
+                        'LaAnhChinh' => $isMain
+                    ]);
+
+                    if ($isMain) {
+                        $product->HinhAnh = $filename;
+                        $product->save();
+                    }
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('admin.sanpham.index')->with('success', 'Thêm sản phẩm thành công!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Lỗi: ' . $e->getMessage());
+        }
+    }
+
+    public function edit($id)
+    {
+        $product = SanPham::with(['hinhanhsanpham', 'chiTiet'])->findOrFail($id);
+        $all_categories = DanhMuc::all();
+        $all_nxbs = NhaSanXuat::all();
+        return view('admin.sanpham.edit', compact('product', 'all_categories', 'all_nxbs'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $product = SanPham::findOrFail($id);
+        $request->validate([
+            'TenSP' => 'required',
+            'DonGia' => 'required|numeric',
+            'SoLuong' => 'required|integer|min:0',
+            'SoLuongDaBan' => 'nullable|integer|min:0',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $product->update($request->only(['TenSP', 'DonGia', 'MoTa', 'MaDM', 'MaNXB', 'SoLuong', 'SoLuongDaBan', 'Slug', 'MoTaNgan', 'TrangThai']));
+
+            // Cập nhật hoặc tạo mới chi tiết sản phẩm (Kệ gia dụng)
+            $product->chiTiet()->updateOrCreate(
+                ['MaSP' => $product->MaSP],
+                [
+                    'ChatLieu' => $request->ChatLieu,
+                    'KichThuoc' => $request->KichThuoc,
+                    'TaiTrong' => $request->TaiTrong,
+                    'SoTang' => $request->SoTang,
+                    'MauSac' => $request->MauSac,
+                    'NoiDungChiTiet' => $request->NoiDungChiTiet,
+                ]
+            );
+
+            // Xóa ảnh được chọn
+            if ($request->has('xoa_anh')) {
+                foreach ($request->xoa_anh as $maHinh) {
+                    $img = HinhAnhSanPham::find($maHinh);
+                    if ($img) {
+                        $path = public_path('assets/images/products/' . $img->DuongDan);
+                        if (File::exists($path)) File::delete($path);
+                        $img->delete();
+                    }
+                }
+            }
+
+            // Thêm ảnh mới
+            if ($request->hasFile('images')) {
+                $destinationPath = public_path('assets/images/products');
+                if (!File::exists($destinationPath)) {
+                    File::makeDirectory($destinationPath, 0755, true);
+                }
+                foreach ($request->file('images') as $index => $file) {
+                    $filename = $product->MaSP . "_" . time() . "_" . $index . "_new." . $file->getClientOriginalExtension();
+                    $file->move($destinationPath, $filename);
+                    HinhAnhSanPham::create([
+                        'MaSP' => $product->MaSP,
+                        'DuongDan' => $filename,
+                        'LaAnhChinh' => 0
+                    ]);
+                }
+            }
+
+            // Cập nhật ảnh chính từ danh sách ảnh cũ
+            if ($request->has('anh_chinh')) {
+                HinhAnhSanPham::where('MaSP', $id)->update(['LaAnhChinh' => 0]);
+                $mainImg = HinhAnhSanPham::find($request->anh_chinh);
+                if ($mainImg) {
+                    $mainImg->update(['LaAnhChinh' => 1]);
+                    $product->update(['HinhAnh' => $mainImg->DuongDan]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('admin.sanpham.index')->with('success', 'Cập nhật sản phẩm thành công!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Lỗi: ' . $e->getMessage());
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $product = SanPham::findOrFail($id);
+            if ($product->chiTietDonHangs()->exists()) {
+                return redirect()->route('admin.sanpham.index')->with('error', 'Không thể xóa sản phẩm này vì đã có trong lịch sử đơn hàng!');
+            }
+            $product->delete();
+            return redirect()->route('admin.sanpham.index')->with('success', 'Xóa sản phẩm thành công!');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.sanpham.index')->with('error', 'Lỗi hệ thống: ' . $e->getMessage());
+        }
+    }
+
+    public function assignAuthor($id)
+    {
+        $product = SanPham::with('ThuongHieus')->findOrFail($id);
+        $all_authors = ThuongHieu::all();
+        return view('admin.sanpham.assign_author', compact('product', 'all_authors'));
+    }
+
+    public function storeAuthor(Request $request, $id)
+    {
+        $request->validate(['Mathuonghieu' => 'required', 'VaiTro' => 'required']);
+        $product = SanPham::findOrFail($id);
+        if (!$product->ThuongHieus()->where('sanpham_thuonghieu.Mathuonghieu', $request->Mathuonghieu)->exists()) {
+            $product->ThuongHieus()->attach($request->Mathuonghieu, ['VaiTro' => $request->VaiTro]);
+            return redirect()->back()->with('success', 'Gán thương hiệu thành công!');
+        }
+        return redirect()->back()->with('error', 'Thương hiệu này đã được gán!');
+    }
+
+    public function removeAuthor($sp_id, $tg_id)
+    {
+        $product = SanPham::findOrFail($sp_id);
+        $product->ThuongHieus()->detach($tg_id);
+        return redirect()->back()->with('success', 'Đã gỡ thương hiệu!');
+    }
+}

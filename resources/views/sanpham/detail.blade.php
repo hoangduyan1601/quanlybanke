@@ -223,9 +223,27 @@
                     <div class="d-flex flex-wrap gap-2">
                         @foreach($product->variants as $variant)
                         <div class="variant-option">
+                            @php
+                                $promoPercent = 0;
+                                if ($product->khuyen_mai_active) {
+                                    $promoPercent = (int)$product->khuyen_mai_active->PhanTramGiam;
+                                }
+                                
+                                // Ưu tiên áp dụng % giảm giá của chương trình khuyến mãi đang chạy lên giá niêm yết của biến thể
+                                if ($promoPercent > 0) {
+                                    $displayPrice = $variant->GiaNiemYet * (1 - ($promoPercent / 100));
+                                } else {
+                                    // Nếu không có KM chung, mới sử dụng giá KM riêng của biến thể (nếu có)
+                                    $displayPrice = ($variant->GiaKhuyenMai && $variant->GiaKhuyenMai > 0) 
+                                        ? $variant->GiaKhuyenMai 
+                                        : $variant->GiaNiemYet;
+                                }
+                            @endphp
                             <input type="radio" class="btn-check" name="variant_id" id="v-{{ $variant->MaVariant }}" 
                                    value="{{ $variant->MaVariant }}"
-                                   data-price="{{ number_format($variant->GiaKhuyenMai ?: $variant->GiaNiemYet, 0, ',', '.') }}"
+                                   data-price="{{ number_format($variant->GiaNiemYet, 0, ',', '.') }}"
+                                   data-promo-percent="{{ $promoPercent }}"
+                                   data-final-price="{{ number_format($displayPrice, 0, ',', '.') }}"
                                    data-image="{{ $variant->HinhAnh ? (Str::startsWith($variant->HinhAnh, 'http') ? $variant->HinhAnh : asset('assets/images/products/' . $variant->HinhAnh)) : '' }}"
                                    data-stock="{{ $variant->SoLuongTon }}"
                                    onchange="onVariantChange(this)">
@@ -561,23 +579,6 @@
         myModal.show();
     }
 
-    // Kiểm tra xem mô hình 3D có load thành công không
-    const modelViewer = document.getElementById('modelViewer');
-    const mainImage = document.getElementById('mainImage');
-    
-    if (modelViewer) {
-        modelViewer.addEventListener('error', () => {
-            modelViewer.style.display = 'none';
-            mainImage.style.display = 'block';
-        });
-        
-        // Nếu file .glb có tồn tại, modelViewer sẽ tự hiện và ta có thể ẩn ảnh
-        modelViewer.addEventListener('load', () => {
-            modelViewer.style.display = 'block';
-            mainImage.style.display = 'none';
-        });
-    }
-
     function changeImage(element, src) {
         document.getElementById('mainImage').src = src;
         // Reset styles for all thumbs
@@ -605,21 +606,35 @@
 
     function onVariantChange(input) {
         let price = input.dataset.price;
+        let finalPrice = input.dataset.finalPrice;
+        let promoPercent = parseInt(input.dataset.promoPercent || 0);
         let image = input.dataset.image;
         let stock = parseInt(input.dataset.stock);
         let errorDiv = document.getElementById('variant-error');
         
         if (errorDiv) errorDiv.style.display = 'none';
 
-        if (price) {
-            const priceElements = document.querySelectorAll('.display-5.fw-bold');
-            priceElements.forEach(el => {
-                if (el.innerHTML.includes('VNĐ')) {
-                    el.innerHTML = price + ' <small class="fs-4">VNĐ</small>';
-                } else {
-                    el.innerText = price + ' VNĐ';
-                }
-            });
+        const priceContainer = document.querySelector('.mb-4.p-4.rounded-3');
+        if (priceContainer) {
+            if (promoPercent > 0) {
+                priceContainer.innerHTML = `
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="text-muted text-decoration-line-through fs-5">${price}₫</span>
+                        <span class="badge bg-danger rounded-pill">-${promoPercent}%</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="display-5 fw-bold text-danger">${finalPrice} <small class="fs-4">VNĐ</small></span>
+                        <span class="text-muted small"><i class="fa-solid fa-cart-shopping me-1 text-gold"></i>Đã bán {{ (int)$product->SoLuongDaBan }} sản phẩm</span>
+                    </div>
+                `;
+            } else {
+                priceContainer.innerHTML = `
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="display-5 fw-bold text-dark">${price} <small class="fs-4">VNĐ</small></span>
+                        <span class="text-muted small"><i class="fa-solid fa-cart-shopping me-1 text-gold"></i>Đã bán {{ (int)$product->SoLuongDaBan }} sản phẩm</span>
+                    </div>
+                `;
+            }
         }
         
         if (image) {
@@ -664,12 +679,10 @@
                 variantArea.style.borderRadius = '10px';
                 variantArea.style.border = '1px solid #dc3545';
             }
-            // Scroll to variant area
             variantArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
 
-        // Reset error styling if successful
         if (variantArea) {
             variantArea.style.padding = '0';
             variantArea.style.backgroundColor = 'transparent';
@@ -693,8 +706,6 @@
                     if(typeof barba !== 'undefined') barba.go("{{ url('/cart') }}");
                     else window.location.href = "{{ url('/cart') }}";
                 }
-                
-                // Cập nhật số lượng giỏ hàng trên Header
                 const cartBadge = document.getElementById('cart-count-badge');
                 if (cartBadge) {
                     cartBadge.innerText = data.cartCount;

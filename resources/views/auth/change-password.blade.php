@@ -10,6 +10,13 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+                <i class="fa-solid fa-circle-exclamation me-2"></i> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <div class="row g-4">
             <!-- Sidebar Navigation -->
             <div class="col-lg-3">
@@ -68,59 +75,56 @@
 
             <!-- Main Content Area -->
             <div class="col-lg-9">
-                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                    <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-bell me-2 text-gold"></i> Thông báo của tôi</h4>
-                        <p class="text-muted small mb-0">Cập nhật những tin tức mới nhất về đơn hàng và ưu đãi.</p>
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-white border-0 p-4">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-shield-halved me-2 text-gold"></i> Bảo mật tài khoản</h5>
                     </div>
-                    @if($notifications->count() > 0)
-                        <button onclick="markAllAsRead()" class="btn btn-outline-dark rounded-pill px-4 py-2 small fw-bold ls-1">
-                            ĐÁNH DẤU TẤT CẢ ĐÃ ĐỌC
-                        </button>
-                    @endif
-                </div>
+                    <div class="card-body p-4 pt-0">
+                        <div class="alert alert-info border-0 rounded-4 p-3 mb-4 d-flex align-items-center" style="background: #f0f9ff;">
+                            <i class="fa-solid fa-circle-info fs-4 me-3 text-info"></i>
+                            <p class="mb-0 small text-info-emphasis fw-medium">Để đảm bảo an toàn, vui lòng sử dụng mật khẩu mạnh bao gồm cả chữ và số.</p>
+                        </div>
 
-                <div class="notifications-list">
-                    @forelse($notifications as $tb)
-                        <div class="notification-card p-4 rounded-4 mb-3 transition-all hover-shadow {{ $tb->TrangThaiDoc ? 'bg-white opacity-75' : 'bg-white shadow-sm border-start border-gold border-4' }}"
-                             style="cursor: pointer;"
-                             onclick="readNotification({{ $tb->MaTB }}, '{{ $tb->LienKet ?: '#' }}')">
-                            
-                            <div class="d-flex align-items-start gap-4">
-                                <div class="noti-icon p-3 rounded-circle {{ $tb->TrangThaiDoc ? 'bg-light text-muted' : 'bg-gold-soft text-gold' }}">
-                                    <i class="fa-solid {{ $tb->LoaiTB == 'DonHang' ? 'fa-box-open' : 'fa-bolt' }} fs-4"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <h6 class="fw-bold mb-0 {{ $tb->TrangThaiDoc ? 'text-muted' : 'text-dark' }} fs-5">{{ $tb->TieuDe }}</h6>
-                                        <small class="text-muted"><i class="fa-regular fa-clock me-1"></i> {{ date('d/m/Y H:i', strtotime($tb->NgayGui)) }}</small>
+                        <form action="{{ route('customer.update_password') }}" method="POST" class="row g-4 no-barba">
+                            @csrf
+                            <div class="col-md-8">
+                                <div class="mb-4">
+                                    <label class="form-label small fw-bold text-muted text-uppercase ls-1">Mật khẩu hiện tại</label>
+                                    <div class="position-relative">
+                                        <input type="password" name="current_password" class="form-control rounded-pill px-4 @error('current_password') is-invalid @enderror" placeholder="Nhập mật khẩu đang sử dụng" required>
+                                        <i class="fa-solid fa-lock position-absolute top-50 end-0 translate-middle-y me-4 text-muted opacity-50"></i>
+                                        @error('current_password')
+                                            <div class="invalid-feedback ms-4">{{ $message }}</div>
+                                        @enderror
                                     </div>
-                                    <p class="mb-0 {{ $tb->TrangThaiDoc ? 'text-muted' : 'text-secondary fw-medium' }} lh-base">{{ $tb->NoiDung }}</p>
-                                    
-                                    @if(!$tb->TrangThaiDoc)
-                                        <div class="mt-2">
-                                            <span class="badge bg-gold text-white rounded-pill px-3 py-1 extra-small fw-bold">MỚI</span>
-                                        </div>
-                                    @endif
                                 </div>
-                                <div class="text-end align-self-center">
-                                    <i class="fa-solid fa-chevron-right text-muted opacity-50"></i>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-100 bg-white rounded-4 shadow-sm">
-                            <div class="mb-4">
-                                <i class="fa-solid fa-bell-slash display-1 text-light"></i>
-                            </div>
-                            <h4 class="fw-bold text-muted">Bạn chưa có thông báo nào</h4>
-                            <p class="text-muted small">Mọi tin tức quan trọng sẽ được hiển thị tại đây.</p>
-                            <a href="{{ route('home') }}" class="btn btn-gold rounded-pill px-5 py-3 fw-bold ls-1 mt-3 shadow-sm">QUAY LẠI TRANG CHỦ</a>
-                        </div>
-                    @endforelse
 
-                    <div class="mt-5 d-flex justify-content-center">
-                        {{ $notifications->links('pagination::bootstrap-5') }}
+                                <div class="mb-4">
+                                    <label class="form-label small fw-bold text-muted text-uppercase ls-1">Mật khẩu mới</label>
+                                    <div class="position-relative">
+                                        <input type="password" name="new_password" class="form-control rounded-pill px-4 @error('new_password') is-invalid @enderror" placeholder="Tối thiểu 6 ký tự" required>
+                                        <i class="fa-solid fa-key position-absolute top-50 end-0 translate-middle-y me-4 text-muted opacity-50"></i>
+                                        @error('new_password')
+                                            <div class="invalid-feedback ms-4">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label small fw-bold text-muted text-uppercase ls-1">Xác nhận mật khẩu mới</label>
+                                    <div class="position-relative">
+                                        <input type="password" name="new_password_confirmation" class="form-control rounded-pill px-4" placeholder="Nhập lại mật khẩu mới" required>
+                                        <i class="fa-solid fa-check-double position-absolute top-50 end-0 translate-middle-y me-4 text-muted opacity-50"></i>
+                                    </div>
+                                </div>
+
+                                <div class="mt-5">
+                                    <button type="submit" class="btn btn-dark rounded-pill px-5 py-2 fw-bold ls-1 shadow-sm">
+                                        CẬP NHẬT MẬT KHẨU
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -130,44 +134,6 @@
 
 <style>
     .ls-1 { letter-spacing: 1px; }
-    .bg-gold-soft { background-color: rgba(175, 146, 69, 0.1); }
-    .py-100 { padding-top: 100px; padding-bottom: 100px; }
-    .extra-small { font-size: 0.65rem; }
     .transition-all { transition: all 0.3s ease; }
-    .hover-shadow:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; transform: translateX(5px); }
 </style>
-
-<script>
-    function readNotification(id, link) {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch(`/notifications/mark-as-read/${id}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'Accept': 'application/json'
-            }
-        }).finally(() => {
-            if(link && link !== '#' && link !== '') {
-                window.location.href = link;
-            } else {
-                location.reload();
-            }
-        });
-    }
-
-    function markAllAsRead() {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        if(confirm('Bạn có muốn đánh dấu tất cả thông báo là đã đọc?')) {
-            fetch(`/notifications/mark-all-read`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                }
-            }).then(() => {
-                location.reload();
-            });
-        }
-    }
-</script>
 @endsection

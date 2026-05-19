@@ -94,6 +94,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
     Route::post('/addresses/{id}/set-default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
     Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->name('addresses.destroy');
+
+    // Đổi mật khẩu
+    Route::get('/change-password', [HomeController::class, 'changePassword'])->name('customer.change_password');
+    Route::post('/change-password', [HomeController::class, 'updatePassword'])->name('customer.update_password');
 });
 
 Route::match(['get', 'post'], '/vnpay-ipn', [VNPayController::class, 'vnpayIPN'])->name('vnpay.ipn');

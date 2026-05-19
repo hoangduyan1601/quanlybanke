@@ -20,10 +20,10 @@ class CartController extends Controller
         if (!$khachHang) {
             // Tự động tạo bản ghi khách hàng để có thể vào giỏ hàng
             $khachHang = KhachHang::create([
-                'MaTK' => $user->MaTK,
-                'HoTen' => $user->TenDN ?? 'Người dùng',
+                'MaTK' => $user->id ?? $user->MaTK,
+                'HoTen' => $user->name ?? 'Người dùng',
                 'SDT'   => '0000000000',
-                'Email' => $user->Email ?? 'user@example.com',
+                'Email' => $user->email ?? 'user@example.com',
                 'DiaChi'=> 'Chưa cập nhật'
             ]);
         }
@@ -51,12 +51,19 @@ class CartController extends Controller
                     $price = $ct->sanPham->gia_hien_tai;
                     $original_price = $ct->sanPham->DonGia;
                     if ($variant) {
-                        if ($variant->GiaKhuyenMai && $variant->GiaKhuyenMai > 0) {
+                        $promoPercent = 0;
+                        if ($ct->sanPham->khuyen_mai_active) {
+                            $promoPercent = $ct->sanPham->khuyen_mai_active->PhanTramGiam;
+                        }
+                        
+                        $original_price = $variant->GiaNiemYet;
+                        
+                        if ($promoPercent > 0) {
+                            $price = $variant->GiaNiemYet * (1 - ($promoPercent / 100));
+                        } elseif ($variant->GiaKhuyenMai && $variant->GiaKhuyenMai > 0) {
                             $price = $variant->GiaKhuyenMai;
-                            $original_price = $variant->GiaNiemYet;
-                        } elseif ($variant->GiaNiemYet && $variant->GiaNiemYet > 0) {
+                        } else {
                             $price = $variant->GiaNiemYet;
-                            $original_price = $variant->GiaNiemYet;
                         }
                     }
 
@@ -228,7 +235,7 @@ class CartController extends Controller
                     }
                 }
 
-                $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with('sanPham')->get();
+                $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with(['sanPham', 'variant'])->get();
 
                 $totalPrice = 0;
                 $cartCount = 0;
@@ -237,7 +244,23 @@ class CartController extends Controller
 
                 foreach ($items as $item) {
                     if ($item->sanPham) {
+                        // Ưu tiên giá của biến thể
                         $price = $item->sanPham->gia_hien_tai;
+                        if ($item->variant) {
+                            $promoPercent = 0;
+                            if ($item->sanPham->khuyen_mai_active) {
+                                $promoPercent = $item->sanPham->khuyen_mai_active->PhanTramGiam;
+                            }
+                            
+                            if ($promoPercent > 0) {
+                                $price = $item->variant->GiaNiemYet * (1 - ($promoPercent / 100));
+                            } elseif ($item->variant->GiaKhuyenMai && $item->variant->GiaKhuyenMai > 0) {
+                                $price = $item->variant->GiaKhuyenMai;
+                            } else {
+                                $price = $item->variant->GiaNiemYet;
+                            }
+                        }
+
                         $totalPrice += $price * $item->SoLuong;
                         $cartCount += $item->SoLuong;
                         if ($item->id == $id) {
@@ -270,13 +293,21 @@ class CartController extends Controller
             if ($gioHang) {
                 ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('id', $id)->delete();
 
-                $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with('sanPham')->get();
+                $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with(['sanPham', 'variant'])->get();
 
                 $totalPrice = 0;
                 $cartCount = 0;
                 foreach ($items as $item) {
                     if ($item->sanPham) {
-                        $totalPrice += $item->sanPham->gia_hien_tai * $item->SoLuong;
+                        $price = $item->sanPham->gia_hien_tai;
+                        if ($item->variant) {
+                            if ($item->variant->GiaKhuyenMai && $item->variant->GiaKhuyenMai > 0) {
+                                $price = $item->variant->GiaKhuyenMai;
+                            } elseif ($item->variant->GiaNiemYet && $item->variant->GiaNiemYet > 0) {
+                                $price = $item->variant->GiaNiemYet;
+                            }
+                        }
+                        $totalPrice += $price * $item->SoLuong;
                         $cartCount += $item->SoLuong;
                     }
                 }
@@ -307,6 +338,3 @@ class CartController extends Controller
         return redirect()->route('cart.index');
     }
 }
-
-
-

@@ -119,6 +119,39 @@
                                             {{ $sp->TenSP }}
                                         </a>
                                     </h5>
+
+                                    @if($sp->variants->isNotEmpty())
+                                        <div class="product-variants-brief mb-2">
+                                            <span class="badge bg-light text-dark border extra-small fw-normal">
+                                                <i class="fa-solid fa-layer-group me-1"></i> {{ $sp->variants->count() }} phiên bản
+                                            </span>
+                                            @php
+                                                $uniqueColors = $sp->variants->pluck('MauSac')->filter()->unique();
+                                                $colorMap = [
+                                                    'Trắng' => '#ffffff',
+                                                    'Đen' => '#333333',
+                                                    'Xám' => '#888888',
+                                                    'Vàng' => '#ffd700',
+                                                    'Xanh' => '#0000ff',
+                                                    'Đỏ' => '#ff0000',
+                                                    'Gỗ' => '#deb887'
+                                                ];
+                                            @endphp
+                                            @if($uniqueColors->isNotEmpty())
+                                                <div class="d-flex gap-1 mt-1">
+                                                    @foreach($uniqueColors->take(5) as $color)
+                                                        @php
+                                                            $hex = $colorMap[$color] ?? '#cccccc';
+                                                        @endphp
+                                                        <span class="color-dot" title="{{ $color }}" style="width: 10px; height: 10px; border-radius: 50%; border: 1px solid #ddd; background-color: {{ $hex }};"></span>
+                                                    @endforeach
+                                                    @if($uniqueColors->count() > 5)
+                                                        <span class="extra-small text-muted">+{{ $uniqueColors->count() - 5 }}</span>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
                                     
                                     <div class="product-author text-muted extra-small mb-3 text-truncate">
                                         <i class="fa-solid fa-feather-pointed me-1 opacity-50"></i> {{ $sp->thuong_hieu_string ?? 'Sưu tầm' }}
@@ -203,6 +236,10 @@ function addToCart(id) {
             }
         } else if(data.status === 'login_required') {
             window.location.href = "{{ route('login') }}";
+        } else if(data.message && data.message.includes('phiên bản')) {
+            if(confirm('Sản phẩm này có nhiều phiên bản. Vui lòng chọn phiên bản bạn yêu thích!')) {
+                window.location.href = `{{ url('/san-pham/detail') }}/${id}`;
+            }
         } else {
             alert(data.message);
         }
@@ -241,9 +278,3 @@ function toggleFavorite(maSP, btn) {
 }
 </script>
 @endsection
-
-
-
-
-
-

@@ -78,7 +78,17 @@
                                 <small class="text-muted">{{ $item->khachhang->Email ?? '' }}</small>
                             </td>
                             <td>
-                                <div class="text-truncate" style="max-width: 200px;" title="{{ $item->sanpham->TenSP ?? 'N/A' }}">{{ $item->sanpham->TenSP ?? 'N/A' }}</div>
+                                <div class="d-flex align-items-center">
+                                    <div class="product-icon bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
+                                        <i class="fas fa-box text-primary small"></i>
+                                    </div>
+                                    <div class="text-truncate" style="max-width: 250px;">
+                                        <a href="{{ route('sanpham.detail', $item->MaSP) }}" target="_blank" class="text-decoration-none fw-bold text-dark hover-primary" title="Xem chi tiết tại cửa hàng">
+                                            {{ $item->sanpham->TenSP ?? 'Sản phẩm đã xóa' }}
+                                            <i class="fas fa-external-link-alt ms-1 extra-small opacity-50"></i>
+                                        </a>
+                                    </div>
+                                </div>
                             </td>
                             <td>
                                 <div class="text-warning">

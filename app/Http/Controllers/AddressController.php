@@ -16,7 +16,7 @@ class AddressController extends Controller
         if (!$khachHang) return redirect('/')->with('error', 'Không tìm thấy thông tin khách hàng.');
 
         $addresses = DiaChiKhachHang::where('MaKH', $khachHang->MaKH)->get();
-        return view('home.addresses', compact('addresses'));
+        return view('home.addresses', compact('addresses', 'khachHang'));
     }
 
     public function store(Request $request)

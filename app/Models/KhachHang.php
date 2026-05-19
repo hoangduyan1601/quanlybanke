@@ -33,5 +33,10 @@ class KhachHang extends Model
     {
         return $this->belongsToMany(SanPham::class, 'yeuthich', 'MaKH', 'MaSP')->withPivot('NgayThem');
     }
+
+    public function diaChis()
+    {
+        return $this->hasMany(DiaChiKhachHang::class, 'MaKH', 'MaKH');
+    }
 }
 

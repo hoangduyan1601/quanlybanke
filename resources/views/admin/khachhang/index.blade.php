@@ -102,13 +102,19 @@
                                 @endif
                             </td>
                             <td class="pe-4 text-end">
-                                <button class="btn btn-sm btn-light rounded-pill px-3 me-2" onclick="openModalSua({{ $row->MaKH }}, '{{ addslashes($row->HoTen) }}', '{{ $row->Email }}', '{{ $row->SDT }}', '{{ addslashes($row->DiaChi) }}')">
+                                <a href="{{ route('admin.donhang.index', ['search' => $row->SDT]) }}" class="btn btn-sm btn-light rounded-pill px-3 me-1" title="Lịch sử mua hàng">
+                                    <i class="fas fa-shopping-bag text-success me-1"></i> Đơn hàng
+                                </a>
+                                <a href="{{ route('admin.khachhang.addresses', $row->MaKH) }}" class="btn btn-sm btn-light rounded-pill px-3 me-1">
+                                    <i class="fas fa-map-marker-alt text-primary me-1"></i> Địa chỉ
+                                </a>
+                                <button class="btn btn-sm btn-light rounded-pill px-3 me-1" onclick="openModalSua({{ $row->MaKH }}, '{{ addslashes($row->HoTen) }}', '{{ $row->Email }}', '{{ $row->SDT }}', '{{ addslashes($row->DiaChi) }}')">
                                     <i class="fas fa-user-edit text-warning me-1"></i> Sửa
                                 </button>
                                 <form action="{{ route('admin.khachhang.destroy', $row->MaKH) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-light rounded-pill px-3 text-danger" onclick="return confirm('Xác nhận xóa khách hàng này?')">
-                                        <i class="fas fa-user-minus"></i> Xóa
+                                        <i class="fas fa-user-minus"></i>
                                     </button>
                                 </form>
                             </td>

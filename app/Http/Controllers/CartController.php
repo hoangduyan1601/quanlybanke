@@ -20,10 +20,10 @@ class CartController extends Controller
         if (!$khachHang) {
             // Tự động tạo bản ghi khách hàng để có thể vào giỏ hàng
             $khachHang = KhachHang::create([
-                'MaTK' => $user->MaTK,
-                'HoTen' => $user->TenDN ?? 'Người dùng',
+                'MaTK' => $user->id ?? $user->MaTK,
+                'HoTen' => $user->name ?? 'Người dùng',
                 'SDT'   => '0000000000',
-                'Email' => $user->Email ?? 'user@example.com',
+                'Email' => $user->email ?? 'user@example.com',
                 'DiaChi'=> 'Chưa cập nhật'
             ]);
         }
@@ -35,18 +35,50 @@ class CartController extends Controller
         $totalPrice = 0;
 
         if ($gioHang) {
-            $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with('sanPham')->get();
+            $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with(['sanPham', 'variant'])->get();
             foreach ($items as $ct) {
                 if ($ct->sanPham) {
-                    $cart[$ct->MaSP] = [
-                        'id'    => $ct->MaSP,
+                    $variant = $ct->variant;
+                    $info = [];
+                    if ($variant) {
+                        if ($variant->MauSac) $info[] = $variant->MauSac;
+                        if ($variant->KichThuoc) $info[] = $variant->KichThuoc;
+                        if ($variant->SoTang) $info[] = $variant->SoTang . ' tầng';
+                    }
+                    $variant_info = !empty($info) ? implode(' - ', $info) : null;
+
+                    // Ưu tiên giá của biến thể nếu có
+                    $price = $ct->sanPham->gia_hien_tai;
+                    $original_price = $ct->sanPham->DonGia;
+                    if ($variant) {
+                        $promoPercent = 0;
+                        if ($ct->sanPham->khuyen_mai_active) {
+                            $promoPercent = $ct->sanPham->khuyen_mai_active->PhanTramGiam;
+                        }
+                        
+                        $original_price = $variant->GiaNiemYet;
+                        
+                        if ($promoPercent > 0) {
+                            $price = $variant->GiaNiemYet * (1 - ($promoPercent / 100));
+                        } elseif ($variant->GiaKhuyenMai && $variant->GiaKhuyenMai > 0) {
+                            $price = $variant->GiaKhuyenMai;
+                        } else {
+                            $price = $variant->GiaNiemYet;
+                        }
+                    }
+
+                    $cart[$ct->id] = [
+                        'id'    => $ct->id,
+                        'product_id' => $ct->MaSP,
+                        'variant_id' => $ct->MaVariant,
                         'name'  => $ct->sanPham->TenSP,
-                        'price' => $ct->sanPham->gia_hien_tai,
-                        'original_price' => $ct->sanPham->DonGia,
-                        'image' => $ct->sanPham->HinhAnh,
+                        'variant_info' => $variant_info,
+                        'price' => $price,
+                        'original_price' => $original_price,
+                        'image' => $variant && $variant->HinhAnh ? $variant->HinhAnh : $ct->sanPham->HinhAnh,
                         'qty'   => $ct->SoLuong
                     ];
-                    $totalPrice += $ct->sanPham->gia_hien_tai * $ct->SoLuong;
+                    $totalPrice += $price * $ct->SoLuong;
                 }
             }
         }
@@ -57,6 +89,7 @@ class CartController extends Controller
     public function add(Request $request)
     {
         $id = $request->input('id');
+        $variantId = $request->input('variant_id');
         $qty = $request->input('qty', 1);
 
         $user = Auth::user();
@@ -69,43 +102,71 @@ class CartController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Không tìm thấy thông tin khách hàng.']);
         }
 
-        $product = SanPham::find($id);
+        $product = SanPham::with('variants')->find($id);
         if (!$product) {
             return response()->json(['status' => 'error', 'message' => 'Sản phẩm không tồn tại']);
         }
 
+        // Bắt buộc chọn biến thể nếu sản phẩm có biến thể
+        if ($product->variants->isNotEmpty() && !$variantId) {
+            return response()->json(['status' => 'error', 'message' => 'Vui lòng chọn một phiên bản cho sản phẩm này!']);
+        }
+
+        // Kiểm tra biến thể nếu có
+        if ($variantId) {
+            $variant = \App\Models\SanPhamVariant::where('MaSP', $id)->where('MaVariant', $variantId)->first();
+            if (!$variant) {
+                return response()->json(['status' => 'error', 'message' => 'Biến thể không hợp lệ']);
+            }
+            if ($qty > $variant->SoLuongTon) {
+                return response()->json(['status' => 'error', 'message' => 'Biến thể này đã hết hàng hoặc không đủ số lượng!']);
+            }
+        } else {
+            if ($qty > $product->SoLuong) {
+                return response()->json(['status' => 'error', 'message' => 'Sản phẩm này đã hết hàng hoặc không đủ số lượng!']);
+            }
+        }
+
         $gioHang = GioHang::firstOrCreate(['MaKH' => $khachHang->MaKH], ['NgayTao' => now()]);
 
-        // Sử dụng DB table trực tiếp để tránh lỗi Eloquent với khóa phức hợp
-        $item = DB::table('chitietgiohang')
-            ->where('MaGH', $gioHang->MaGH)
-            ->where('MaSP', $id)
-            ->first();
+        $itemQuery = ChiTietGioHang::where('MaGH', $gioHang->MaGH)
+            ->where('MaSP', $id);
+        
+        if ($variantId) {
+            $itemQuery->where('MaVariant', $variantId);
+        } else {
+            $itemQuery->whereNull('MaVariant');
+        }
+
+        $item = $itemQuery->first();
 
         if ($item) {
             $newQty = $item->SoLuong + $qty;
-            if ($newQty > $product->SoLuong) {
-                return response()->json(['status' => 'error', 'message' => 'Kho không đủ hàng!']);
+            
+            // Re-check stock with new quantity
+            if ($variantId) {
+                $variant = \App\Models\SanPhamVariant::find($variantId);
+                if ($newQty > $variant->SoLuongTon) {
+                    return response()->json(['status' => 'error', 'message' => 'Kho không đủ hàng!']);
+                }
+            } else {
+                if ($newQty > $product->SoLuong) {
+                    return response()->json(['status' => 'error', 'message' => 'Kho không đủ hàng!']);
+                }
             }
             
-            DB::table('chitietgiohang')
-                ->where('MaGH', $gioHang->MaGH)
-                ->where('MaSP', $id)
-                ->update(['SoLuong' => $newQty]);
+            $item->update(['SoLuong' => $newQty]);
         } else {
-            if ($qty > $product->SoLuong) {
-                return response()->json(['status' => 'error', 'message' => 'Kho không đủ hàng!']);
-            }
-            
-            DB::table('chitietgiohang')->insert([
+            ChiTietGioHang::create([
                 'MaGH' => $gioHang->MaGH,
                 'MaSP' => $id,
+                'MaVariant' => $variantId,
                 'SoLuong' => $qty,
                 'DonGiaTamTinh' => $product->DonGia
             ]);
         }
 
-        $cartCount = DB::table('chitietgiohang')->where('MaGH', $gioHang->MaGH)->sum('SoLuong');
+        $cartCount = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->sum('SoLuong');
 
         return response()->json([
             'status' => 'success', 
@@ -116,22 +177,20 @@ class CartController extends Controller
 
     public function update(Request $request)
     {
-        $qtyArray = $request->input('qty', []);
+        $qtyArray = $request->input('qty', []); // This will now be ID-based
         $user = Auth::user();
         $khachHang = KhachHang::where('MaTK', $user->MaTK)->first();
         
         if ($khachHang) {
             $gioHang = GioHang::where('MaKH', $khachHang->MaKH)->first();
             if ($gioHang && !empty($qtyArray)) {
-                foreach ($qtyArray as $maSP => $soLuong) {
-                    $item = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('MaSP', $maSP)->first();
+                foreach ($qtyArray as $id => $soLuong) {
+                    $item = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('id', $id)->first();
                     if ($item) {
                         if ($soLuong <= 0) {
-                            ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('MaSP', $maSP)->delete();
+                            $item->delete();
                         } else {
-                            ChiTietGioHang::where('MaGH', $gioHang->MaGH)
-                                ->where('MaSP', $maSP)
-                                ->update(['SoLuong' => $soLuong]);
+                            $item->update(['SoLuong' => $soLuong]);
                         }
                     }
                 }
@@ -149,7 +208,7 @@ class CartController extends Controller
         if ($khachHang) {
             $gioHang = GioHang::where('MaKH', $khachHang->MaKH)->first();
             if ($gioHang) {
-                ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('MaSP', $id)->delete();
+                ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('id', $id)->delete();
             }
         }
 
@@ -158,7 +217,7 @@ class CartController extends Controller
 
     public function ajaxUpdate(Request $request)
     {
-        $id = $request->input('id');
+        $id = $request->input('id'); // This is the ID of ChiTietGioHang record
         $qty = $request->input('qty');
         
         $user = Auth::user();
@@ -167,13 +226,16 @@ class CartController extends Controller
         if ($khachHang) {
             $gioHang = GioHang::where('MaKH', $khachHang->MaKH)->first();
             if ($gioHang) {
-                if ($qty <= 0) {
-                    ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('MaSP', $id)->delete();
-                } else {
-                    ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('MaSP', $id)->update(['SoLuong' => $qty]);
+                $item = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('id', $id)->first();
+                if ($item) {
+                    if ($qty <= 0) {
+                        $item->delete();
+                    } else {
+                        $item->update(['SoLuong' => $qty]);
+                    }
                 }
 
-                $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with('sanPham')->get();
+                $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with(['sanPham', 'variant'])->get();
 
                 $totalPrice = 0;
                 $cartCount = 0;
@@ -182,10 +244,26 @@ class CartController extends Controller
 
                 foreach ($items as $item) {
                     if ($item->sanPham) {
+                        // Ưu tiên giá của biến thể
                         $price = $item->sanPham->gia_hien_tai;
+                        if ($item->variant) {
+                            $promoPercent = 0;
+                            if ($item->sanPham->khuyen_mai_active) {
+                                $promoPercent = $item->sanPham->khuyen_mai_active->PhanTramGiam;
+                            }
+                            
+                            if ($promoPercent > 0) {
+                                $price = $item->variant->GiaNiemYet * (1 - ($promoPercent / 100));
+                            } elseif ($item->variant->GiaKhuyenMai && $item->variant->GiaKhuyenMai > 0) {
+                                $price = $item->variant->GiaKhuyenMai;
+                            } else {
+                                $price = $item->variant->GiaNiemYet;
+                            }
+                        }
+
                         $totalPrice += $price * $item->SoLuong;
                         $cartCount += $item->SoLuong;
-                        if ($item->MaSP == $id) {
+                        if ($item->id == $id) {
                             $currentItemTotal = $price * $item->SoLuong;
                             $currentItemUnitPrice = $price;
                         }
@@ -213,15 +291,23 @@ class CartController extends Controller
         if ($khachHang) {
             $gioHang = GioHang::where('MaKH', $khachHang->MaKH)->first();
             if ($gioHang) {
-                ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('MaSP', $id)->delete();
+                ChiTietGioHang::where('MaGH', $gioHang->MaGH)->where('id', $id)->delete();
 
-                $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with('sanPham')->get();
+                $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with(['sanPham', 'variant'])->get();
 
                 $totalPrice = 0;
                 $cartCount = 0;
                 foreach ($items as $item) {
                     if ($item->sanPham) {
-                        $totalPrice += $item->sanPham->gia_hien_tai * $item->SoLuong;
+                        $price = $item->sanPham->gia_hien_tai;
+                        if ($item->variant) {
+                            if ($item->variant->GiaKhuyenMai && $item->variant->GiaKhuyenMai > 0) {
+                                $price = $item->variant->GiaKhuyenMai;
+                            } elseif ($item->variant->GiaNiemYet && $item->variant->GiaNiemYet > 0) {
+                                $price = $item->variant->GiaNiemYet;
+                            }
+                        }
+                        $totalPrice += $price * $item->SoLuong;
                         $cartCount += $item->SoLuong;
                     }
                 }
@@ -252,6 +338,3 @@ class CartController extends Controller
         return redirect()->route('cart.index');
     }
 }
-
-
-

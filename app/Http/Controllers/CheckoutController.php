@@ -35,6 +35,8 @@ class CheckoutController extends Controller
             ->whereNotNull('MaGiamGia') // Có mã giảm giá để người dùng áp dụng
             ->get();
 
+        $addresses = \App\Models\DiaChiKhachHang::where('MaKH', $khachHang->MaKH)->get();
+
         session()->forget('cart_promotion');
 
         $gioHang = GioHang::where('MaKH', $khachHang->MaKH)->first();
@@ -42,24 +44,56 @@ class CheckoutController extends Controller
         $cart = [];
         $totalPrice = 0;
         if ($gioHang) {
-            $query = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with('sanPham');
+            $query = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with(['sanPham', 'variant']);
             if (!empty($selectedIds)) {
-                $query->whereIn('MaSP', $selectedIds);
+                $query->whereIn('id', $selectedIds);
             }
             $items = $query->get();
             
             foreach ($items as $item) {
                 if ($item->sanPham) {
-                    $cart[$item->MaSP] = [
-                        'id'    => $item->MaSP,
+                    $variant = $item->variant;
+                    $info = [];
+                    if ($variant) {
+                        if ($variant->MauSac) $info[] = $variant->MauSac;
+                        if ($variant->KichThuoc) $info[] = $variant->KichThuoc;
+                        if ($variant->SoTang) $info[] = $variant->SoTang . ' tầng';
+                    }
+                    $variant_info = !empty($info) ? implode(' - ', $info) : null;
+
+                    // Ưu tiên giá của biến thể nếu có
+                    $price = $item->sanPham->gia_hien_tai;
+                    $original_price = $item->sanPham->DonGia;
+                    if ($variant) {
+                        $promoPercent = 0;
+                        if ($item->sanPham->khuyen_mai_active) {
+                            $promoPercent = $item->sanPham->khuyen_mai_active->PhanTramGiam;
+                        }
+                        
+                        $original_price = $variant->GiaNiemYet;
+                        
+                        if ($promoPercent > 0) {
+                            $price = $variant->GiaNiemYet * (1 - ($promoPercent / 100));
+                        } elseif ($variant->GiaKhuyenMai && $variant->GiaKhuyenMai > 0) {
+                            $price = $variant->GiaKhuyenMai;
+                        } else {
+                            $price = $variant->GiaNiemYet;
+                        }
+                    }
+
+                    $cart[$item->id] = [
+                        'id'    => $item->id,
+                        'product_id' => $item->MaSP,
+                        'variant_id' => $item->MaVariant,
                         'name'  => $item->sanPham->TenSP,
-                        'price' => $item->sanPham->gia_hien_tai,
-                        'original_price' => $item->sanPham->DonGia,
+                        'variant_info' => $variant_info,
+                        'price' => $price,
+                        'original_price' => $original_price,
                         'qty'   => $item->SoLuong,
-                        'image' => $item->sanPham->HinhAnh,
+                        'image' => $variant && $variant->HinhAnh ? $variant->HinhAnh : $item->sanPham->HinhAnh,
                         'ma_dm' => $item->sanPham->MaDM
                     ];
-                    $totalPrice += $item->sanPham->gia_hien_tai * $item->SoLuong;
+                    $totalPrice += $price * $item->SoLuong;
                 }
             }
         }
@@ -68,7 +102,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index');
         }
 
-        return view('cart.checkout', compact('cart', 'totalPrice', 'promotions', 'khachHang', 'selectedIds'));
+        return view('cart.checkout', compact('cart', 'totalPrice', 'promotions', 'khachHang', 'selectedIds', 'addresses'));
     }
 
     public function process(Request $request)
@@ -101,9 +135,9 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index');
         }
 
-        $query = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with('sanPham');
+        $query = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with(['sanPham', 'variant']);
         if (!empty($selectedIds)) {
-            $query->whereIn('MaSP', $selectedIds);
+            $query->whereIn('id', $selectedIds);
         }
         $items = $query->get();
 
@@ -114,7 +148,22 @@ class CheckoutController extends Controller
         $TongThanhToan = 0;
         foreach($items as $item) {
             if ($item->sanPham) {
-                $TongThanhToan += $item->sanPham->gia_hien_tai * $item->SoLuong;
+                $price = $item->sanPham->gia_hien_tai;
+                if ($item->variant) {
+                    $promoPercent = 0;
+                    if ($item->sanPham->khuyen_mai_active) {
+                        $promoPercent = $item->sanPham->khuyen_mai_active->PhanTramGiam;
+                    }
+                    
+                    if ($promoPercent > 0) {
+                        $price = $item->variant->GiaNiemYet * (1 - ($promoPercent / 100));
+                    } elseif ($item->variant->GiaKhuyenMai && $item->variant->GiaKhuyenMai > 0) {
+                        $price = $item->variant->GiaKhuyenMai;
+                    } else {
+                        $price = $item->variant->GiaNiemYet;
+                    }
+                }
+                $TongThanhToan += $price * $item->SoLuong;
             }
         }
 
@@ -136,34 +185,63 @@ class CheckoutController extends Controller
 
             $donHang = DonHang::create([
                 'NgayDat' => now(),
+                'TongTienHang' => $TongThanhToan,
+                'TongTien' => $TongThanhToan - $soTienGiam,
                 'TongThanhToan' => $TongThanhToan - $soTienGiam,
+                'TrangThai' => 1,
                 'TrangThaiDH' => $initialStatus,
                 'PhuongThucThanhToan' => $pttt,
                 'MaKH' => $khachHang->MaKH,
                 'DiaChiGiao' => $diaChi,
+                'DiaChiGiaoHang' => $diaChi,
                 'MaKM' => $maKM,
                 'SoTienGiam' => $soTienGiam
             ]);
 
             foreach ($items as $item) {
                 if ($item->sanPham) {
-                    $thanhTien = $item->sanPham->gia_hien_tai * $item->SoLuong;
+                    $price = $item->sanPham->gia_hien_tai;
+                    if ($item->variant) {
+                        $promoPercent = 0;
+                        if ($item->sanPham->khuyen_mai_active) {
+                            $promoPercent = $item->sanPham->khuyen_mai_active->PhanTramGiam;
+                        }
+                        
+                        if ($promoPercent > 0) {
+                            $price = $item->variant->GiaNiemYet * (1 - ($promoPercent / 100));
+                        } elseif ($item->variant->GiaKhuyenMai && $item->variant->GiaKhuyenMai > 0) {
+                            $price = $item->variant->GiaKhuyenMai;
+                        } else {
+                            $price = $item->variant->GiaNiemYet;
+                        }
+                    }
+                    
+                    $thanhTien = $price * $item->SoLuong;
                     ChiTietDonHang::create([
                         'MaDH' => $donHang->MaDH,
                         'MaSP' => $item->MaSP,
+                        'MaVariant' => $item->MaVariant,
                         'SoLuong' => $item->SoLuong,
-                        'DonGia' => $item->sanPham->gia_hien_tai,
+                        'DonGia' => $price,
                         'ThanhTien' => $thanhTien
                     ]);
 
+                    // Giảm tồn kho ở cả sản phẩm và biến thể
                     $item->sanPham->decrement('SoLuong', $item->SoLuong);
                     $item->sanPham->increment('SoLuongDaBan', $item->SoLuong);
+                    
+                    if ($item->MaVariant) {
+                        $variant = \App\Models\SanPhamVariant::find($item->MaVariant);
+                        if ($variant) {
+                            $variant->decrement('SoLuongTon', $item->SoLuong);
+                        }
+                    }
                 }
             }
 
             // Chỉ xóa các sản phẩm đã thanh toán khỏi giỏ hàng
             if (!empty($selectedIds)) {
-                ChiTietGioHang::where('MaGH', $gioHang->MaGH)->whereIn('MaSP', $selectedIds)->delete();
+                ChiTietGioHang::where('MaGH', $gioHang->MaGH)->whereIn('id', $selectedIds)->delete();
             } else {
                 ChiTietGioHang::where('MaGH', $gioHang->MaGH)->delete();
             }
@@ -177,7 +255,6 @@ class CheckoutController extends Controller
             }
 
             // Gửi thông báo email CHỈ khi thanh toán tiền mặt (COD)
-            // Với Chuyển khoản, email sẽ được gửi sau khi Webhook xác nhận tiền về
             if ($pttt === 'TienMat') {
                 try {
                     // Cho Admin
@@ -219,7 +296,6 @@ class CheckoutController extends Controller
                 'TrangThaiDH' => 'ChoXacNhan'
             ]);
 
-            // Bây giờ mới gửi email vì đã chuyển sang COD (Thanh toán thành công/Xác nhận đặt hàng)
             try {
                 Notification::route('mail', config('mail.from.address'))
                     ->notify(new NewOrderNotification($order->load('khachHang')));
@@ -240,8 +316,6 @@ class CheckoutController extends Controller
     public function success($id)
     {
         $order = DonHang::with(['chiTietDonHangs.sanPham'])->findOrFail($id);
-        
-        // Bảo mật: Đảm bảo khách hàng chỉ xem được đơn hàng của chính mình
         $user = Auth::user();
         $khachHang = KhachHang::where('MaTK', $user->MaTK)->first();
         if ($order->MaKH !== $khachHang->MaKH) {
@@ -256,7 +330,6 @@ class CheckoutController extends Controller
         $order = DonHang::find($id);
         if (!$order) return response()->json(['status' => 'error'], 404);
         
-        // Đã thanh toán nếu trạng thái không phải là ChoThanhToan
         return response()->json([
             'order_id' => $order->MaDH,
             'status' => $order->TrangThaiDH,
@@ -270,12 +343,10 @@ class CheckoutController extends Controller
         $user = Auth::user();
         $khachHang = KhachHang::where('MaTK', $user->MaTK)->first();
 
-        // Kiểm tra quyền sở hữu đơn hàng (dùng so sánh không nghiêm ngặt để tránh lỗi kiểu dữ liệu)
         if (!$khachHang || $order->MaKH != $khachHang->MaKH) {
             return response()->json(['status' => 'error', 'message' => 'Bạn không có quyền xác nhận đơn hàng này.'], 403);
         }
 
-        // Nếu đã xác nhận rồi hoặc đã thanh toán rồi thì trả về thành công luôn
         if (in_array($order->TrangThaiDH, ['ChoXacNhan', 'DaXacNhan', 'DaGiao'])) {
             return response()->json(['status' => 'success']);
         }
@@ -291,7 +362,6 @@ class CheckoutController extends Controller
                 'SoTienDaThanhToan' => $order->TongThanhToan 
             ]);
 
-            // Gửi thông báo cho Admin
             try {
                 Notification::route('mail', config('mail.from.address'))
                     ->notify(new NewOrderNotification($order->load('khachHang')));
@@ -333,10 +403,25 @@ class CheckoutController extends Controller
 
         $totalPrice = 0;
         if ($gioHang) {
-            $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with('sanPham')->get();
+            $items = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with(['sanPham', 'variant'])->get();
             foreach ($items as $item) {
                 if ($item->sanPham) {
-                    $totalPrice += $item->sanPham->gia_hien_tai * $item->SoLuong;
+                    $price = $item->sanPham->gia_hien_tai;
+                    if ($item->variant) {
+                        $promoPercent = 0;
+                        if ($item->sanPham->khuyen_mai_active) {
+                            $promoPercent = $item->sanPham->khuyen_mai_active->PhanTramGiam;
+                        }
+                        
+                        if ($promoPercent > 0) {
+                            $price = $item->variant->GiaNiemYet * (1 - ($promoPercent / 100));
+                        } elseif ($item->variant->GiaKhuyenMai && $item->variant->GiaKhuyenMai > 0) {
+                            $price = $item->variant->GiaKhuyenMai;
+                        } else {
+                            $price = $item->variant->GiaNiemYet;
+                        }
+                    }
+                    $totalPrice += $price * $item->SoLuong;
                 }
             }
         }
@@ -367,7 +452,3 @@ class CheckoutController extends Controller
         ]);
     }
 }
-
-
-
-

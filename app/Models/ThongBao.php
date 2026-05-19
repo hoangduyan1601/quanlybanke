@@ -15,7 +15,7 @@ class ThongBao extends Model
         'TieuDe',
         'NoiDung',
         'NgayGui',
-        'TrangThaiDHDoc',
+        'TrangThaiDoc',
         'LoaiTB',
         'LienKet',
         'DaDoc',

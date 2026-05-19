@@ -21,6 +21,35 @@
         </div>
     </div>
 
+    <!-- Filters & Search -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <form action="{{ route('admin.dontrahang.index') }}" method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="search" class="form-control bg-light border-start-0" placeholder="Tìm theo Mã Trả, Mã ĐH, Tên KH..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select bg-light">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="ChoDuyet" {{ request('status') == 'ChoDuyet' ? 'selected' : '' }}>Chờ duyệt</option>
+                        <option value="DaNhanHangTra" {{ request('status') == 'DaNhanHangTra' ? 'selected' : '' }}>Đã nhận hàng trả</option>
+                        <option value="DaHoanTien" {{ request('status') == 'DaHoanTien' ? 'selected' : '' }}>Đã hoàn tiền</option>
+                        <option value="TuChoi" {{ request('status') == 'TuChoi' ? 'selected' : '' }}>Từ chối</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 rounded-3">Lọc</button>
+                </div>
+                <div class="col-md-1">
+                    <a href="{{ route('admin.dontrahang.index') }}" class="btn btn-light w-100 rounded-3"><i class="fas fa-sync-alt"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -29,6 +58,7 @@
                         <th class="ps-4 py-3 text-uppercase small fw-bold">Mã Trả</th>
                         <th class="py-3 text-uppercase small fw-bold">Mã ĐH</th>
                         <th class="py-3 text-uppercase small fw-bold">Khách Hàng</th>
+                        <th class="py-3 text-uppercase small fw-bold">Minh Chứng</th>
                         <th class="py-3 text-uppercase small fw-bold">Lý Do</th>
                         <th class="py-3 text-uppercase small fw-bold">Số Tiền Hoàn</th>
                         <th class="py-3 text-uppercase small fw-bold">Trạng Thái</th>
@@ -43,6 +73,15 @@
                             <td>
                                 <div>{{ $item->donhang->khachHang->HoTen ?? 'N/A' }}</div>
                                 <small class="text-muted">{{ $item->donhang->khachHang->SDT ?? '' }}</small>
+                            </td>
+                            <td>
+                                @if($item->HinhAnhMinhChung)
+                                    <a href="{{ asset($item->HinhAnhMinhChung) }}" target="_blank">
+                                        <img src="{{ asset($item->HinhAnhMinhChung) }}" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover;">
+                                    </a>
+                                @else
+                                    <span class="text-muted small">N/A</span>
+                                @endif
                             </td>
                             <td>
                                 <div class="small text-truncate" style="max-width: 200px;" title="{{ $item->LyDo }}">{{ $item->LyDo }}</div>
@@ -63,8 +102,8 @@
                                         'TuChoi' => 'Từ chối',
                                     ];
                                 @endphp
-                                <span class="badge {{ $statusClasses[$item->TrangThaiDHTra] ?? 'bg-secondary' }} rounded-pill px-3">
-                                    {{ $statusLabels[$item->TrangThaiDHTra] ?? $item->TrangThaiDHTra }}
+                                <span class="badge {{ $statusClasses[$item->TrangThaiTra] ?? 'bg-secondary' }} rounded-pill px-3">
+                                    {{ $statusLabels[$item->TrangThaiTra] ?? $item->TrangThaiTra }}
                                 </span>
                             </td>
                             <td class="pe-4 text-end">

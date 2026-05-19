@@ -53,7 +53,7 @@ class AdminKhachHangController extends Controller
         try {
             $taikhoan = TaiKhoan::create([
                 'TenDangNhap' => $request->TenDangNhap,
-                'MatKhau' => password_hash($request->MatKhau, PASSWORD_DEFAULT),
+                'MatKhau' => \Illuminate\Support\Facades\Hash::make($request->MatKhau),
                 'VaiTro' => 'KhachHang',
                 'TrangThai' => 1,
             ]);
@@ -110,6 +110,51 @@ class AdminKhachHangController extends Controller
             \Illuminate\Support\Facades\DB::rollBack();
             return redirect()->route('admin.khachhang.index')->with('error', 'Lỗi hệ thống: ' . $e->getMessage());
         }
+    }
+
+    public function addresses($id)
+    {
+        $customer = KhachHang::with('diaChis')->findOrFail($id);
+        return view('admin.khachhang.addresses', compact('customer'));
+    }
+
+    public function storeAddress(Request $request, $id)
+    {
+        $request->validate([
+            'HoTenNguoiNhan' => 'required',
+            'SDTNguoiNhan' => 'required',
+            'DiaChiChiTiet' => 'required',
+            'TinhThanh' => 'required',
+            'QuanHuyen' => 'required',
+            'PhuongXa' => 'required',
+        ]);
+
+        $kh = KhachHang::findOrFail($id);
+        
+        // Nếu chọn mặc định, bỏ mặc định các địa chỉ khác
+        if ($request->MacDinh) {
+            \App\Models\DiaChiKhachHang::where('MaKH', $id)->update(['MacDinh' => 0]);
+        }
+
+        \App\Models\DiaChiKhachHang::create([
+            'MaKH' => $id,
+            'HoTenNguoiNhan' => $request->HoTenNguoiNhan,
+            'SDTNguoiNhan' => $request->SDTNguoiNhan,
+            'DiaChiChiTiet' => $request->DiaChiChiTiet,
+            'PhuongXa' => $request->PhuongXa,
+            'QuanHuyen' => $request->QuanHuyen,
+            'TinhThanh' => $request->TinhThanh,
+            'MacDinh' => $request->MacDinh ? 1 : 0
+        ]);
+
+        return redirect()->back()->with('success', 'Thêm địa chỉ thành công!');
+    }
+
+    public function deleteAddress($kh_id, $dc_id)
+    {
+        $address = \App\Models\DiaChiKhachHang::where('MaKH', $kh_id)->where('MaDC', $dc_id)->firstOrFail();
+        $address->delete();
+        return redirect()->back()->with('success', 'Xóa địa chỉ thành công!');
     }
 }
 

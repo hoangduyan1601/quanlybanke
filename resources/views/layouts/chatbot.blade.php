@@ -28,7 +28,7 @@
         <!-- Messages Body -->
         <div id="chat-messages" class="p-4" style="flex: 1; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 15px;">
             <div class="bot-msg msg-bubble" style="align-self: flex-start; background: #fff; padding: 12px 16px; border-radius: 1rem 1rem 1rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 85%; font-size: 0.9rem; border: 1px solid #e2e8f0;">
-                Chào mừng bạn đến với Luxury FurnitureStore! 👋 Tôi là trợ lý AI thông minh. Tôi có thể giúp gì cho bạn?
+                Chào mừng bạn đến với Shelf Luxury! 👋 Tôi là trợ lý AI chuyên về giải pháp kệ thông minh. Tôi có thể giúp gì cho bạn?
             </div>
         </div>
 
@@ -37,7 +37,7 @@
             <!-- Quick Replies -->
             <div class="d-flex gap-2 mb-2 overflow-auto custom-scrollbar quick-replies" style="white-space: nowrap; padding-bottom: 4px;">
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-nowrap quick-reply-btn" style="font-size: 0.8rem;">🔥 Khuyến mãi</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-nowrap quick-reply-btn" style="font-size: 0.8rem;">✨ Sách mới</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-nowrap quick-reply-btn" style="font-size: 0.8rem;">✨ Mẫu kệ mới</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-nowrap quick-reply-btn" style="font-size: 0.8rem;">📦 Tra cứu đơn hàng</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-nowrap quick-reply-btn" style="font-size: 0.8rem;">🏆 Bán chạy nhất</button>
             </div>

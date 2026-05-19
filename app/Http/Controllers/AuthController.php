@@ -30,22 +30,37 @@ class AuthController extends Controller
             ->where('TrangThai', 1)
             ->first();
 
-        $authenticated = false;
         if ($user) {
-            // Sử dụng password_verify để kiểm tra mật khẩu đã hash
-            if (password_verify($request->password, $user->MatKhau)) {
-                $authenticated = true;
-            } else {
-                // Fallback cho mật khẩu plaintext (legacy)
-                if ($request->password === $user->MatKhau) {
-                    $authenticated = true;
+            $authenticated = false;
+            
+            // Laravel mặc định dùng Bcrypt (bắt đầu bằng $2y$)
+            $isBcrypt = str_starts_with($user->MatKhau, '$2y$');
+
+            if ($isBcrypt) {
+                try {
+                    if (Hash::check($request->password, $user->MatKhau)) {
+                        $authenticated = true;
+                    }
+                } catch (\Exception $e) {
+                    // Nếu lỗi algorithm, coi như không phải hash và kiểm tra plaintext
+                    $isBcrypt = false;
                 }
             }
-        }
 
-        if ($authenticated) {
-            Auth::login($user);
-            return $this->redirectUser($user->VaiTro);
+            if (!$isBcrypt) {
+                // Nếu không phải hash hoặc lỗi, kiểm tra văn bản thuần
+                if ($request->password === $user->MatKhau) {
+                    $authenticated = true;
+                    // Tự động nâng cấp lên hash để bảo mật
+                    $user->MatKhau = Hash::make($request->password);
+                    $user->save();
+                }
+            }
+
+            if ($authenticated) {
+                Auth::login($user);
+                return $this->redirectUser($user->VaiTro);
+            }
         }
 
         return back()->withErrors([

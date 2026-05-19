@@ -27,11 +27,11 @@ class SanPhamLuxurySeeder extends Seeder
                 'MaNXB' => 1,
                 'HinhAnh' => 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1000&auto=format&fit=crop',
                 'specs' => [
-                    'SoTrang' => 450,
+                    'ChatLieu' => 'Giấy cao cấp',
                     'KichThuoc' => '14 x 20.5 cm',
-                    'LoaiBia' => 'Bìa mềm',
-                    'TrongLuong' => 400,
-                    'NamXuatBan' => 2023,
+                    'TaiTrong' => 'Bìa mềm',
+                    'SoTang' => '450 trang',
+                    'MauSac' => '2023',
                     'NoiDungChiTiet' => 'Rừng Na Uy lấy bối cảnh nước Nhật những năm 1960, xoay quanh nhân vật Toru Watanabe và những mối quan hệ phức tạp với hai người phụ nữ khác biệt...'
                 ]
             ],
@@ -44,11 +44,11 @@ class SanPhamLuxurySeeder extends Seeder
                 'MaNXB' => 2,
                 'HinhAnh' => 'https://images.unsplash.com/photo-1589998059171-d88d6645f51f?q=80&w=1000&auto=format&fit=crop',
                 'specs' => [
-                    'SoTrang' => 320,
+                    'ChatLieu' => 'Bìa da, giấy chống lóa',
                     'KichThuoc' => '15 x 23 cm',
-                    'LoaiBia' => 'Bìa da',
-                    'TrongLuong' => 600,
-                    'NamXuatBan' => 2024,
+                    'TaiTrong' => 'Bìa da',
+                    'SoTang' => '320 trang',
+                    'MauSac' => '2024',
                     'NoiDungChiTiet' => 'Đắc Nhân Tâm không chỉ là một cuốn sách, nó là một người thầy chỉ dẫn về cách thấu hiểu lòng người...'
                 ]
             ],
@@ -61,11 +61,11 @@ class SanPhamLuxurySeeder extends Seeder
                 'MaNXB' => 3,
                 'HinhAnh' => 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=1000&auto=format&fit=crop',
                 'specs' => [
-                    'SoTrang' => 220,
+                    'ChatLieu' => 'Giấy mỹ thuật',
                     'KichThuoc' => '13 x 19 cm',
-                    'LoaiBia' => 'Bìa mềm',
-                    'TrongLuong' => 250,
-                    'NamXuatBan' => 2022,
+                    'TaiTrong' => 'Bìa mềm',
+                    'SoTang' => '220 trang',
+                    'MauSac' => '2022',
                     'NoiDungChiTiet' => 'Câu chuyện về cậu bé Santiago đuổi theo giấc mơ tìm kho báu tại Kim Tự Tháp Ai Cập...'
                 ]
             ],
@@ -78,11 +78,11 @@ class SanPhamLuxurySeeder extends Seeder
                 'MaNXB' => 4,
                 'HinhAnh' => 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=1000&auto=format&fit=crop',
                 'specs' => [
-                    'SoTrang' => 560,
+                    'ChatLieu' => 'Giấy Offset',
                     'KichThuoc' => '16 x 24 cm',
-                    'LoaiBia' => 'Bìa cứng',
-                    'TrongLuong' => 800,
-                    'NamXuatBan' => 2023,
+                    'TaiTrong' => 'Bìa cứng',
+                    'SoTang' => '560 trang',
+                    'MauSac' => '2023',
                     'NoiDungChiTiet' => 'Yuval Noah Harari đặt ra những câu hỏi nền tảng về tôn giáo, chính trị và tương lai của nhân loại...'
                 ]
             ]

@@ -24,11 +24,11 @@
 <div class="container-fluid p-0">
     <div class="dashboard-header d-md-flex align-items-center justify-content-between shadow-sm">
         <div>
-            <h2 class="fw-bold mb-1 text-white">Quản Lý Tác Giả</h2>
-            <p class="mb-0 text-white-50">Kho dữ liệu trí tuệ và đội ngũ sáng tác</p>
+            <h2 class="fw-bold mb-1 text-white">Quản Lý Thương Hiệu</h2>
+            <p class="mb-0 text-white-50">Danh sách các thương hiệu và bộ sưu tập sản phẩm</p>
         </div>
         <button type="button" class="btn btn-light rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalThuongHieu" onclick="openModalThem()">
-            <i class="fas fa-plus me-2 text-primary"></i> Thêm Tác Giả
+            <i class="fas fa-plus me-2 text-primary"></i> Thêm Thương Hiệu
         </button>
     </div>
 
@@ -37,7 +37,7 @@
             <div class="col-md-9">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-0 rounded-start-pill"><i class="fas fa-search"></i></span>
-                    <input type="text" name="search" class="form-control bg-light border-0 rounded-end-pill" placeholder="Tìm tên tác giả, quốc tịch..." value="{{ request('search') }}">
+                    <input type="text" name="search" class="form-control bg-light border-0 rounded-end-pill" placeholder="Tìm tên thương hiệu, quốc tịch..." value="{{ request('search') }}">
                 </div>
             </div>
             <div class="col-md-3">
@@ -51,7 +51,7 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
-                        <th class="ps-4 py-3 text-uppercase small fw-bold">Tác Giả</th>
+                        <th class="ps-4 py-3 text-uppercase small fw-bold">Thương Hiệu</th>
                         <th class="py-3 text-uppercase small fw-bold">Quốc Tịch</th>
                         <th class="py-3 text-uppercase small fw-bold">Mô Tả Ngắn</th>
                         <th class="pe-4 py-3 text-uppercase small fw-bold text-end">Hành Động</th>
@@ -65,7 +65,7 @@
                                     <img src="{{ $item->AnhDaiDien ? asset('assets/images/ThuongHieu/' . $item->AnhDaiDien) : 'https://via.placeholder.com/50' }}" class="author-avatar me-3">
                                     <div>
                                         <div class="fw-bold text-dark">{{ $item->Tenthuonghieu }}</div>
-                                        <small class="text-muted">ID: #TG{{ $item->Mathuonghieu }}</small>
+                                        <small class="text-muted">ID: #TH{{ $item->Mathuonghieu }}</small>
                                     </div>
                                 </div>
                             </td>
@@ -77,7 +77,7 @@
                                 </button>
                                 <form action="{{ route('admin.thuonghieu.destroy', ['id' => $item->Mathuonghieu]) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-light rounded-pill px-3 text-danger" onclick="return confirm('Xác nhận xóa hồ sơ tác giả này?')">
+                                    <button type="submit" class="btn btn-sm btn-light rounded-pill px-3 text-danger" onclick="return confirm('Xác nhận xóa hồ sơ thương hiệu này?')">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>
@@ -98,7 +98,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom-0 p-4 pb-0">
-                <h5 class="fw-bold" id="modalTitle">Hồ Sơ Tác Giả</h5>
+                <h5 class="fw-bold" id="modalTitle">Hồ Sơ Thương Hiệu</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
@@ -106,29 +106,29 @@
                     @csrf
                     <div id="methodField"></div>
                     <div class="mb-3">
-                        <label class="small fw-bold text-muted mb-2">HỌ VÀ TÊN</label>
+                        <label class="small fw-bold text-muted mb-2">TÊN THƯƠNG HIỆU</label>
                         <input type="text" class="form-control rounded-pill" id="inputTen" name="ten" required>
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="small fw-bold text-muted mb-2">NGÀY SINH</label>
-                            <input type="date" class="form-control rounded-pill" id="inputNS" name="ngaysinh">
+                            <label class="small fw-bold text-muted mb-2">NĂM THÀNH LẬP</label>
+                            <input type="number" class="form-control rounded-pill" id="inputNS" name="ngaysinh" placeholder="Ví dụ: 1990">
                         </div>
                         <div class="col-md-6">
-                            <label class="small fw-bold text-muted mb-2">QUỐC TỊCH</label>
+                            <label class="small fw-bold text-muted mb-2">QUỐC GIA</label>
                             <input type="text" class="form-control rounded-pill" id="inputQT" name="quoctich">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="small fw-bold text-muted mb-2">ẢNH ĐẠI DIỆN</label>
+                        <label class="small fw-bold text-muted mb-2">LOGO THƯƠNG HIỆU</label>
                         <input type="file" class="form-control rounded-pill" name="anh" accept="image/*">
                     </div>
                     <div class="mb-4">
-                        <label class="small fw-bold text-muted mb-2">TIỂU SỬ</label>
+                        <label class="small fw-bold text-muted mb-2">MÔ TẢ CHI TIẾT</label>
                         <textarea class="form-control rounded-4" id="inputMota" name="mota" rows="4"></textarea>
                     </div>
                     <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-bold shadow-sm">
-                        <span id="btnSubmitText">Lưu Hồ Sơ</span>
+                        <span id="btnSubmitText">Lưu Thông Tin</span>
                     </button>
                 </form>
             </div>
@@ -138,8 +138,8 @@
 
 <script>
     function openModalThem() {
-        document.getElementById('modalTitle').textContent = 'Thêm Tác Giả Mới';
-        document.getElementById('btnSubmitText').textContent = 'Tạo hồ sơ';
+        document.getElementById('modalTitle').textContent = 'Thêm Thương Hiệu Mới';
+        document.getElementById('btnSubmitText').textContent = 'Xác nhận';
         document.getElementById('formThuongHieu').action = "{{ route('admin.thuonghieu.store') }}";
         document.getElementById('methodField').innerHTML = '';
         document.getElementById('inputTen').value = '';
@@ -149,7 +149,7 @@
     }
     
     function openModalSua(id, ten, ns, qt, mota) {
-        document.getElementById('modalTitle').textContent = 'Cập Nhật Hồ Sơ';
+        document.getElementById('modalTitle').textContent = 'Cập Nhật Thương Hiệu';
         document.getElementById('btnSubmitText').textContent = 'Cập nhật';
         document.getElementById('formThuongHieu').action = "/admin/ThuongHieu/" + id;
         document.getElementById('methodField').innerHTML = '@method("PUT")';

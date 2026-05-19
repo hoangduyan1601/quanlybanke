@@ -14,7 +14,7 @@ class DonTraHang extends Model
         'LyDo',
         'HinhAnhMinhChung',
         'SoTienHoan',
-        'TrangThaiDHTra'
+        'TrangThaiTra'
     ];
 
     public function donhang()

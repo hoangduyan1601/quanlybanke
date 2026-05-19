@@ -38,7 +38,7 @@
                 
                 <div class="mb-3">
                     <label class="admin-form-label">Tên sản phẩm <span class="text-danger">*</span></label>
-                    <input type="text" name="TenSP" class="form-control form-control-luxury" value="{{ old('TenSP', $product->TenSP) }}" placeholder="Nhập tên sách..." required>
+                    <input type="text" name="TenSP" class="form-control form-control-luxury" value="{{ old('TenSP', $product->TenSP) }}" placeholder="Nhập tên mẫu kệ..." required>
                 </div>
 
                 <div class="mb-3">
@@ -90,7 +90,7 @@
                     <div class="col-md-4 col-sm-6">
                         <div class="admin-card overflow-hidden h-100 border-0 shadow-sm">
                             <div class="position-relative" style="padding-top: 100%;">
-                                <img src="{{ asset('assets/images/products/' . $img->DuongDan) }}" class="position-absolute top-0 start-0 w-100 h-100" style="object-fit: cover;">
+                                <img src="{{ $img->url }}" class="position-absolute top-0 start-0 w-100 h-100" style="object-fit: cover;">
                                 @if($img->LaAnhChinh)
                                     <span class="position-absolute top-0 end-0 m-2 badge bg-warning text-dark"><i class="fas fa-star me-1"></i>Ảnh chính</span>
                                 @endif

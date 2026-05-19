@@ -29,11 +29,11 @@ class HighQualityProductDetailSeeder extends Seeder
             ChiTietSanPham::updateOrCreate(
                 ['MaSP' => $sp->MaSP],
                 [
-                    'SoTrang' => $specs['pages'],
+                    'ChatLieu' => 'Giấy cao cấp',
                     'KichThuoc' => $specs['size'],
-                    'LoaiBia' => $specs['cover'],
-                    'TrongLuong' => $specs['weight'],
-                    'NamXuatBan' => $specs['year'],
+                    'TaiTrong' => $specs['cover'],
+                    'SoTang' => $specs['pages'] . ' trang',
+                    'MauSac' => (string)$specs['year'],
                     'NoiDungChiTiet' => $content['long_desc']
                 ]
             );

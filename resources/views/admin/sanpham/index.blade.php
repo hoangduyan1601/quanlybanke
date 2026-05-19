@@ -170,23 +170,27 @@
                         <td class="ps-4">
                             <div class="d-flex align-items-center">
                                 <div class="product-img-container me-3">
-                                    @php
-                                        $displayImage = $sp->HinhAnh;
-                                        if (empty($displayImage) && $sp->hinhanhsanpham->count() > 0) {
-                                            $displayImage = $sp->hinhanhsanpham->first()->DuongDan;
-                                        }
-                                    @endphp
-                                    <img src="{{ !empty($displayImage) ? asset('assets/images/products/' . $displayImage) : 'https://via.placeholder.com/50' }}" 
+                                    <img src="{{ $sp->main_image_url }}" 
                                          class="w-100 h-100" style="object-fit: cover;">
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark">{{ $sp->TenSP }}</div>
+                                    <div class="fw-bold text-dark">
+                                        <a href="{{ route('sanpham.detail', $sp->MaSP) }}" target="_blank" class="text-decoration-none text-dark hover-primary">
+                                            {{ $sp->TenSP }} <i class="fas fa-external-link-alt small ms-1 opacity-50"></i>
+                                        </a>
+                                    </div>
                                     <small class="text-muted">Mã: #SP{{ $sp->MaSP }}</small>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-light text-dark border px-3 rounded-pill fw-normal">{{ $sp->danhmuc->TenDM ?? 'N/A' }}</span>
+                            @if($sp->danhmuc)
+                                <a href="{{ route('admin.danhmuc.edit', $sp->MaDM) }}" class="text-decoration-none">
+                                    <span class="badge bg-light text-dark border px-3 rounded-pill fw-normal hover-primary">{{ $sp->danhmuc->TenDM }}</span>
+                                </a>
+                            @else
+                                <span class="badge bg-light text-dark border px-3 rounded-pill fw-normal">N/A</span>
+                            @endif
                         </td>
                         <td class="text-center fw-bold text-success">
                             {{ number_format($sp->gia_hien_tai) }}₫

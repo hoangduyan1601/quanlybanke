@@ -75,6 +75,14 @@ class AdminNhapHangController extends Controller
                 // Cập nhật số lượng tồn kho
                 $sp = SanPham::findOrFail($p['MaSP']);
                 $sp->increment('SoLuong', $p['SoLuong']);
+
+                // Nếu có variant_id (cần bổ sung vào form sau), cập nhật cả variant
+                if (isset($p['MaVariant']) && $p['MaVariant']) {
+                    $variant = \App\Models\SanPhamVariant::find($p['MaVariant']);
+                    if ($variant) {
+                        $variant->increment('SoLuongTon', $p['SoLuong']);
+                    }
+                }
             }
 
             DB::commit();
@@ -93,15 +101,33 @@ class AdminNhapHangController extends Controller
 
     public function destroy($id)
     {
+        DB::beginTransaction();
         try {
-            $nhapHang = LichSuNhapHang::findOrFail($id);
+            $nhapHang = LichSuNhapHang::with('chiTietNhapHangs')->findOrFail($id);
             
-            // Khi xóa phiếu nhập, có thể cần cân nhắc việc trừ lại tồn kho. 
-            // Ở đây tôi chỉ xóa phiếu để đơn giản, hoặc bạn có thể thêm logic trừ kho.
-            $nhapHang->delete();
+            // Khi xóa phiếu nhập, trừ lại tồn kho đã cộng trước đó
+            foreach ($nhapHang->chiTietNhapHangs as $ct) {
+                // Trừ kho sản phẩm chính
+                $sp = SanPham::find($ct->MaSP);
+                if ($sp) {
+                    $sp->decrement('SoLuong', $ct->SoLuongNhap);
+                }
 
-            return redirect()->route('admin.nhaphang.index')->with('success', 'Xóa phiếu nhập thành công!');
+                // Trừ kho biến thể (nếu có)
+                if (isset($ct->MaVariant) && $ct->MaVariant) {
+                    $variant = \App\Models\SanPhamVariant::find($ct->MaVariant);
+                    if ($variant) {
+                        $variant->decrement('SoLuongTon', $ct->SoLuongNhap);
+                    }
+                }
+            }
+
+            $nhapHang->delete();
+            DB::commit();
+
+            return redirect()->route('admin.nhaphang.index')->with('success', 'Xóa phiếu nhập và cập nhật lại tồn kho thành công!');
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->route('admin.nhaphang.index')->with('error', 'Lỗi hệ thống khi xóa phiếu nhập: ' . $e->getMessage());
         }
     }

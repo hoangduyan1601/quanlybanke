@@ -59,10 +59,10 @@ class YeuThichController extends Controller
             return redirect()->route('login');
         }
 
-        $customer = KhachHang::where('MaTK', Auth::user()->MaTK)->first();
-        $favorites = $customer ? $customer->favorites()->with('danhmuc')->get() : collect();
+        $khachHang = KhachHang::where('MaTK', Auth::user()->MaTK)->first();
+        $favorites = $khachHang ? $khachHang->favorites()->with('danhmuc')->get() : collect();
 
-        return view('home.favorites', compact('favorites'));
+        return view('home.favorites', compact('favorites', 'khachHang'));
     }
 }
 

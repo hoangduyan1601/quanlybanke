@@ -15,12 +15,12 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             InitialDataSeeder::class,
-            SanPhamLuxurySeeder::class,
-            LargeScaleProductSeeder::class,
-            AssignAuthorsSeeder::class,
-            ProfessionalBlogAndDetailSeeder::class,
-            HighQualityProductDetailSeeder::class,
-            RealisticDataSeeder::class,
+            KeGiaDungSeeder::class,
+            ProfessionalShelfExpansionSeeder::class,
+            ShelfMarketingSeeder::class,
+            ProfessionalShelfSeeder::class,
+            ShelfImageSeeder::class,
+            EnterpriseDataSeeder::class,
         ]);
     }
 }

@@ -14,7 +14,7 @@ class DashboardController extends BaseAdminController
     {
         // THỐNG KÊ NHANH
         $tongSP = SanPham::count();
-        $hetHang = SanPham::where('SoLuong', 0)->count();
+        $hetHang = SanPham::where('SoLuong', '<=', 5)->count();
         $khachHang = KhachHang::count();
         $tongDon = DonHang::count();
         $donChoXacNhan = DonHang::where('TrangThaiDH', 'ChoXacNhan')->count();

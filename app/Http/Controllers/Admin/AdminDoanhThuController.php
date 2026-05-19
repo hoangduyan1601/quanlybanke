@@ -43,7 +43,7 @@ class AdminDoanhThuController extends Controller
         }
 
         $tong_doanh_thu = $queryDoanhThu->sum('TongThanhToan');
-        $tong_nhap = $queryNhapHang->sum('TongThanhToanNhap');
+        $tong_nhap = $queryNhapHang->sum('TongTienNhap');
         $loi_nhuan = $tong_doanh_thu - $tong_nhap;
 
         // 2. DOANH THU & NHẬP HÀNG THEO THÁNG (Cho biểu đồ năm)
@@ -51,7 +51,7 @@ class AdminDoanhThuController extends Controller
         $nhaphang_thang = [];
         for ($i = 1; $i <= 12; $i++) {
             $doanhthu_thang[] = (float)DonHang::where('TrangThaiDH', 'DaGiao')->whereYear('NgayDat', $nam)->whereMonth('NgayDat', $i)->sum('TongThanhToan');
-            $nhaphang_thang[] = (float)LichSuNhapHang::whereYear('NgayNhap', $nam)->whereMonth('NgayNhap', $i)->sum('TongThanhToanNhap');
+            $nhaphang_thang[] = (float)LichSuNhapHang::whereYear('NgayNhap', $nam)->whereMonth('NgayNhap', $i)->sum('TongTienNhap');
         }
 
         // 3. THỐNG KÊ THEO NGÀY TRONG THÁNG (Nếu có chọn tháng)
@@ -80,7 +80,7 @@ class AdminDoanhThuController extends Controller
             $labels_tuan[] = 'T' . $startOfWeek->format('d/m');
             
             $dt = (float)DonHang::where('TrangThaiDH', 'DaGiao')->whereBetween('NgayDat', [$startOfWeek, $endOfWeek])->sum('TongThanhToan');
-            $nh = (float)LichSuNhapHang::whereBetween('NgayNhap', [$startOfWeek, $endOfWeek])->sum('TongThanhToanNhap');
+            $nh = (float)LichSuNhapHang::whereBetween('NgayNhap', [$startOfWeek, $endOfWeek])->sum('TongTienNhap');
             
             $doanhthu_tuan[] = $dt;
             $nhaphang_tuan[] = $nh;

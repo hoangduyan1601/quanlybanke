@@ -107,6 +107,11 @@
                             </td>
                             <td>
                                 <div class="small fw-medium text-dark">{{ date('d/m/y', strtotime($item->NgayBatDau)) }} - {{ date('d/m/y', strtotime($item->NgayKetThuc)) }}</div>
+                                @if(strtotime($item->NgayKetThuc) < time())
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 mt-1" style="font-size: 0.65rem;">Đã hết hạn</span>
+                                @else
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 mt-1" style="font-size: 0.65rem;">Đang chạy</span>
+                                @endif
                             </td>
                             <td class="pe-4 text-end">
                                 <button class="btn btn-sm btn-light rounded-pill px-3 me-1" onclick="openModalSua('{{ $item->MaKM }}', '{{ addslashes($item->TenKM) }}', '{{ $item->PhanTramGiam }}', '{{ $item->NgayBatDau ? date('Y-m-d', strtotime($item->NgayBatDau)) : '' }}', '{{ $item->NgayKetThuc ? date('Y-m-d', strtotime($item->NgayKetThuc)) : '' }}', '{{ $item->LoaiKM }}', '{{ $item->MaDM }}', '{{ $item->DieuKienToiThieu }}', '{{ $item->MaGiamGia }}')">
@@ -200,7 +205,36 @@
         document.getElementById('divCode').style.display = (loai === 'DonHang') ? 'block' : 'none';
         document.getElementById('divMin').style.display = (loai === 'DonHang') ? 'block' : 'none';
     }
-    // ... Giữ các hàm openModalThem/Sua cũ
+
+    function openModalThem() {
+        document.getElementById('modalTitle').innerText = 'Tạo Khuyến Mãi Mới';
+        document.getElementById('formKM').action = "{{ route('admin.khuyenmai.store') }}";
+        document.getElementById('methodField').innerHTML = '';
+        document.getElementById('formKM').reset();
+        document.getElementById('btnSubmitText').innerText = 'Kích Hoạt Chiến Dịch';
+        toggleKMFields();
+    }
+
+    function openModalSua(id, ten, giam, bd, kt, loai, madm, min, code) {
+        document.getElementById('modalTitle').innerText = 'Chỉnh Sửa Khuyến Mãi #' + id;
+        document.getElementById('formKM').action = "/admin/khuyenmai/" + id;
+        document.getElementById('methodField').innerHTML = '@method("PUT")';
+        
+        document.getElementById('inputTen').value = ten;
+        document.getElementById('inputGiam').value = giam;
+        document.getElementById('inputBD').value = bd;
+        document.getElementById('inputKT').value = kt;
+        document.getElementById('inputLoai').value = loai;
+        document.getElementById('inputMaDM').value = madm;
+        document.getElementById('inputMin').value = min;
+        document.getElementById('inputMaGiamGia').value = code;
+        
+        document.getElementById('btnSubmitText').innerText = 'Lưu Thay Đổi';
+        toggleKMFields();
+        
+        const modal = new bootstrap.Modal(document.getElementById('modalKM'));
+        modal.show();
+    }
 </script>
 @endsection
 

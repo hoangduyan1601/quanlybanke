@@ -73,7 +73,9 @@ class AdminKhuyenMaiController extends Controller
         $request->validate([
             'TenKM' => 'required',
             'PhanTramGiam' => 'required|numeric',
-            'LoaiKM' => 'required'
+            'LoaiKM' => 'required',
+            'NgayBatDau' => 'required|date',
+            'NgayKetThuc' => 'required|date|after_or_equal:NgayBatDau'
         ]);
 
         $data = $request->all();
@@ -84,6 +86,7 @@ class AdminKhuyenMaiController extends Controller
         }
         if ($data['LoaiKM'] !== 'DonHang') {
             $data['MaGiamGia'] = null;
+            $data['DieuKienToiThieu'] = 0;
         }
 
         $km = KhuyenMai::create($data);
@@ -134,7 +137,9 @@ class AdminKhuyenMaiController extends Controller
         $request->validate([
             'TenKM' => 'required',
             'PhanTramGiam' => 'required|numeric',
-            'LoaiKM' => 'required'
+            'LoaiKM' => 'required',
+            'NgayBatDau' => 'required|date',
+            'NgayKetThuc' => 'required|date|after_or_equal:NgayBatDau'
         ]);
 
         $km = KhuyenMai::findOrFail($id);
@@ -146,6 +151,7 @@ class AdminKhuyenMaiController extends Controller
         }
         if ($data['LoaiKM'] !== 'DonHang') {
             $data['MaGiamGia'] = null;
+            $data['DieuKienToiThieu'] = 0;
         }
 
         $km->update($data);

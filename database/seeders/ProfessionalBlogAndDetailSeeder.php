@@ -79,11 +79,11 @@ class ProfessionalBlogAndDetailSeeder extends Seeder
             ChiTietSanPham::updateOrCreate(
                 ['MaSP' => $sp->MaSP],
                 [
-                    'SoTrang' => rand(150, 800),
+                    'ChatLieu' => 'Giấy Phần Lan chống lóa',
                     'KichThuoc' => $kichthuocs[array_rand($kichthuocs)],
-                    'LoaiBia' => $loaibias[array_rand($loaibias)],
-                    'TrongLuong' => rand(300, 1200),
-                    'NamXuatBan' => rand(2020, 2026),
+                    'TaiTrong' => $loaibias[array_rand($loaibias)],
+                    'SoTang' => rand(150, 800) . ' trang',
+                    'MauSac' => (string)rand(2020, 2026),
                     'NoiDungChiTiet' => '
                         <p><strong>"' . $sp->TenSP . '"</strong> là một trong những tác phẩm xuất sắc nhất được chúng tôi tuyển chọn. Cuốn sách không chỉ mang lại giá trị tri thức sâu sắc mà còn là một vật phẩm trang trí tuyệt đẹp cho kệ sách của bạn.</p>
                         <p>Với chất liệu giấy <em>Creamy Phần Lan</em> chống lóa, bảo vệ mắt và mực in đậu nành thân thiện môi trường, chúng tôi cam kết mang lại trải nghiệm đọc tốt nhất cho độc giả.</p>

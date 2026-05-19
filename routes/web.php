@@ -24,6 +24,13 @@ use App\Http\Controllers\Admin\AdminThongBaoController;
 use App\Http\Controllers\YeuThichController;
 use App\Http\Controllers\BaiVietController;
 use App\Http\Controllers\Admin\AdminBaiVietController;
+use App\Http\Controllers\Admin\AdminDonTraHangController;
+use App\Http\Controllers\Admin\AdminDonViVanChuyenController;
+use App\Http\Controllers\Admin\AdminDanhGiaController;
+use App\Http\Controllers\Admin\AdminSanPhamVariantController;
+use App\Http\Controllers\Admin\AdminChatController;
+use App\Http\Controllers\AddressController;
+use App\Http\Controllers\ChatbotController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -39,6 +46,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/san-pham', [SanPhamController::class, 'index'])->name('sanpham.index');
 Route::get('/san-pham/detail/{id}', [SanPhamController::class, 'detail'])->name('sanpham.detail');
+Route::post('/san-pham/detail/{id}/review', [SanPhamController::class, 'storeReview'])->name('sanpham.review')->middleware('auth');
 Route::get('/san-pham/search', [SanPhamController::class, 'search'])->name('sanpham.search');
 Route::get('/san-pham/suggest', [SanPhamController::class, 'suggest'])->name('sanpham.suggest');
 Route::get('/danhmuc/{id}', [SanPhamController::class, 'index'])->name('danhmuc.show');
@@ -70,23 +78,35 @@ Route::middleware('auth')->group(function () {
     Route::get('/vnpay-return', [VNPayController::class, 'vnpayReturn'])->name('vnpay.return');
 
     // Thông báo & Đơn hàng cho người dùng
+    Route::get('/notifications', [HomeController::class, 'notifications'])->name('notifications.index');
     Route::post('/notifications/mark-as-read/{id}', [HomeController::class, 'markNotificationRead']);
     Route::post('/notifications/mark-all-read', [HomeController::class, 'markAllRead']);
     Route::get('/orders/detail/{id}', [HomeController::class, 'orderDetail']);
     Route::post('/orders/cancel/{id}', [HomeController::class, 'cancelOrder'])->name('orders.cancel');
+    Route::post('/orders/return/{id}', [HomeController::class, 'requestReturn'])->name('orders.return');
 
     // Yêu thích
     Route::get('/favorites', [YeuThichController::class, 'index'])->name('favorites.index');
     Route::post('/favorites/toggle', [YeuThichController::class, 'toggle'])->name('favorites.toggle');
+
+    // Sổ địa chỉ
+    Route::get('/addresses', [AddressController::class, 'index'])->name('addresses.index');
+    Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
+    Route::post('/addresses/{id}/set-default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
+    Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->name('addresses.destroy');
+
+    // Đổi mật khẩu
+    Route::get('/change-password', [HomeController::class, 'changePassword'])->name('customer.change_password');
+    Route::post('/change-password', [HomeController::class, 'updatePassword'])->name('customer.update_password');
 });
 
 Route::match(['get', 'post'], '/vnpay-ipn', [VNPayController::class, 'vnpayIPN'])->name('vnpay.ipn');
 
 // Chatbot AI (Cho phép cả khách vãng lai)
-Route::post('/chatbot/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])->name('chatbot.chat');
-Route::get('/chatbot/history', [\App\Http\Controllers\ChatbotController::class, 'getHistory'])->name('chatbot.history');
-Route::get('/chatbot/unread', [\App\Http\Controllers\ChatbotController::class, 'checkUnread'])->name('chatbot.unread');
-Route::post('/chatbot/mark-read', [\App\Http\Controllers\ChatbotController::class, 'markAsRead'])->name('chatbot.mark-read');
+Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
+Route::get('/chatbot/history', [ChatbotController::class, 'getHistory'])->name('chatbot.history');
+Route::get('/chatbot/unread', [ChatbotController::class, 'checkUnread'])->name('chatbot.unread');
+Route::post('/chatbot/mark-read', [ChatbotController::class, 'markAsRead'])->name('chatbot.mark-read');
 
 // Admin routes
 Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
@@ -124,6 +144,9 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
 
     // Khach Hang
     Route::resource('khachhang', AdminKhachHangController::class);
+    Route::get('khachhang/{id}/addresses', [AdminKhachHangController::class, 'addresses'])->name('khachhang.addresses');
+    Route::post('khachhang/{id}/addresses', [AdminKhachHangController::class, 'storeAddress'])->name('khachhang.addresses.store');
+    Route::delete('khachhang/{kh_id}/addresses/{dc_id}', [AdminKhachHangController::class, 'deleteAddress'])->name('khachhang.addresses.destroy');
 
     // Nha Xuat Ban
     Route::resource('nxb', AdminNhaSanXuatController::class);
@@ -159,9 +182,9 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::resource('thongbao', AdminThongBaoController::class);
 
     // Ho tro Truc tuyen (Chat)
-    Route::get('chat', [\App\Http\Controllers\Admin\AdminChatController::class, 'index'])->name('chat.index');
-    Route::get('chat/{identifier}', [\App\Http\Controllers\Admin\AdminChatController::class, 'show'])->name('chat.show');
-    Route::post('chat/reply', [\App\Http\Controllers\Admin\AdminChatController::class, 'reply'])->name('chat.reply');
+    Route::get('chat', [AdminChatController::class, 'index'])->name('chat.index');
+    Route::get('chat/{identifier}', [AdminChatController::class, 'show'])->name('chat.show');
+    Route::post('chat/reply', [AdminChatController::class, 'reply'])->name('chat.reply');
 
     // Profile
     Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');

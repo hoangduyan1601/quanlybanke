@@ -13,7 +13,7 @@
                     <div class="category-list">
                         <a href="{{ route('sanpham.index', ['sort' => $sort ?? 'latest']) }}" class="cat-item {{ !isset($categoryId) || $categoryId == 0 ? 'active' : '' }} no-barba" data-barba-prevent>
                             <span class="d-flex align-items-center">
-                                <i class="fa-solid fa-layer-group me-3 opacity-50"></i> Tất cả sách
+                                <i class="fa-solid fa-layer-group me-3 opacity-50"></i> Tất cả kệ
                             </span>
                             <i class="fa-solid fa-chevron-right fs-xs opacity-0 trans-all"></i>
                         </a>
@@ -31,9 +31,8 @@
                 <div class="promo-card p-4 rounded-4 position-relative overflow-hidden" style="background: #1a1a1a; color: white;">
                     <div class="position-relative z-1">
                         <h6 class="font-luxury mb-3" style="color: var(--gold-light); letter-spacing: 1px;">ĐẶC QUYỀN VIP</h6>
-                        <p class="extra-small opacity-75 mb-0">Nhận ngay ưu đãi miễn phí vận chuyển cho đơn hàng từ 500.000₫</p>
+                        <p class="extra-small opacity-75 mb-0">Nhận ngay ưu đãi miễn phí vận chuyển cho đơn hàng từ 1.000.000₫</p>
                     </div>
-                    <i class="fa-solid fa-crown position-absolute end-0 bottom-0 opacity-10 mb-n2 me-n2" style="font-size: 3rem;"></i>
                 </div>
             </div>
         </div>
@@ -50,7 +49,7 @@
                         </ol>
                     </nav>
                     <h2 class="font-luxury fw-bold text-dark mb-1">{{ $pageTitle }}</h2>
-                    <p class="text-muted small mb-0 opacity-75">Khám phá bộ sưu tập tri thức tuyển chọn ({{ $totalRecords }} đầu sách)</p>
+                    <p class="text-muted small mb-0 opacity-75">Khám phá bộ sưu tập kệ gia dụng cao cấp ({{ $totalRecords }} mẫu kệ)</p>
                 </div>
                 <div class="d-flex gap-3 align-items-center">
                     <span class="extra-small fw-bold text-muted ls-1">SẮP XẾP:</span>
@@ -68,9 +67,9 @@
             @if ($products->isEmpty())
                 <div class="glass-panel text-center py-5 rounded-4 bg-white border-0 shadow-sm">
                     <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" width="80" alt="Not found" class="mb-4 opacity-25">
-                    <h5 class="text-dark fw-bold">Hiện chưa có tác phẩm nào</h5>
+                    <h5 class="text-dark fw-bold">Hiện chưa có sản phẩm nào</h5>
                     <p class="text-muted small">Vui lòng quay lại sau hoặc khám phá các danh mục khác.</p>
-                    <a href="{{ route('sanpham.index') }}" class="btn btn-dark rounded-pill px-4 py-2 mt-3 no-barba" data-barba-prevent>TẤT CẢ SÁCH</a>
+                    <a href="{{ route('sanpham.index') }}" class="btn btn-dark rounded-pill px-4 py-2 mt-3 no-barba" data-barba-prevent>TẤT CẢ SẢN PHẨM</a>
                 </div>
             @else
                 <div class="row g-4">
@@ -80,7 +79,7 @@
                                 <div class="product-thumb position-relative rounded-4 overflow-hidden mb-3 bg-light shadow-sm">
                                     <a href="{{ route('sanpham.detail', $sp->MaSP) }}" class="d-block no-barba" data-barba-prevent>
                                         <div class="img-wrapper d-flex align-items-center justify-content-center p-4 bg-white" style="height: 320px;">
-                                            <img src="{{ $sp->HinhAnh ? (Str::startsWith($sp->HinhAnh, 'http') ? $sp->HinhAnh : asset('assets/images/products/' . $sp->HinhAnh)) : 'https://via.placeholder.com/400x600' }}" 
+                                            <img src="{{ $sp->main_image_url }}" 
                                                  class="img-fluid trans-all-slow" alt="{{ $sp->TenSP }}" style="max-height: 100%; object-fit: contain;">
                                         </div>
                                     </a>
@@ -120,6 +119,39 @@
                                             {{ $sp->TenSP }}
                                         </a>
                                     </h5>
+
+                                    @if($sp->variants->isNotEmpty())
+                                        <div class="product-variants-brief mb-2">
+                                            <span class="badge bg-light text-dark border extra-small fw-normal">
+                                                <i class="fa-solid fa-layer-group me-1"></i> {{ $sp->variants->count() }} phiên bản
+                                            </span>
+                                            @php
+                                                $uniqueColors = $sp->variants->pluck('MauSac')->filter()->unique();
+                                                $colorMap = [
+                                                    'Trắng' => '#ffffff',
+                                                    'Đen' => '#333333',
+                                                    'Xám' => '#888888',
+                                                    'Vàng' => '#ffd700',
+                                                    'Xanh' => '#0000ff',
+                                                    'Đỏ' => '#ff0000',
+                                                    'Gỗ' => '#deb887'
+                                                ];
+                                            @endphp
+                                            @if($uniqueColors->isNotEmpty())
+                                                <div class="d-flex gap-1 mt-1">
+                                                    @foreach($uniqueColors->take(5) as $color)
+                                                        @php
+                                                            $hex = $colorMap[$color] ?? '#cccccc';
+                                                        @endphp
+                                                        <span class="color-dot" title="{{ $color }}" style="width: 10px; height: 10px; border-radius: 50%; border: 1px solid #ddd; background-color: {{ $hex }};"></span>
+                                                    @endforeach
+                                                    @if($uniqueColors->count() > 5)
+                                                        <span class="extra-small text-muted">+{{ $uniqueColors->count() - 5 }}</span>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endif
                                     
                                     <div class="product-author text-muted extra-small mb-3 text-truncate">
                                         <i class="fa-solid fa-feather-pointed me-1 opacity-50"></i> {{ $sp->thuong_hieu_string ?? 'Sưu tầm' }}
@@ -204,6 +236,10 @@ function addToCart(id) {
             }
         } else if(data.status === 'login_required') {
             window.location.href = "{{ route('login') }}";
+        } else if(data.message && data.message.includes('phiên bản')) {
+            if(confirm('Sản phẩm này có nhiều phiên bản. Vui lòng chọn phiên bản bạn yêu thích!')) {
+                window.location.href = `{{ url('/san-pham/detail') }}/${id}`;
+            }
         } else {
             alert(data.message);
         }
@@ -242,9 +278,3 @@ function toggleFavorite(maSP, btn) {
 }
 </script>
 @endsection
-
-
-
-
-
-

@@ -49,7 +49,7 @@ class GeminiService
         NHIỆM VỤ:
         - Sử dụng hồ sơ cá nhân hóa để đưa ra các gợi ý 'đúng gu' Quý khách một cách tinh tế.
         - Luôn hiển thị thông tin khuyến mãi nếu sản phẩm đang được giảm giá.
-        - Nếu Quý khách chưa có lịch sử, hãy gợi ý những sách bán chạy nhất hiện nay.";
+        - Nếu Quý khách chưa có lịch sử, hãy gợi ý những sản phẩm kệ bán chạy nhất hiện nay.";
 
         // 3. Tra cứu dữ liệu bổ sung (RAG)
         $contextData = $this->getRelevantData($message, $maKH);

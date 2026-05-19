@@ -63,11 +63,33 @@ class HomeController extends Controller
             ->orderBy('NgayDat', 'desc')
             ->get();
 
-        $unreadCount = ThongBao::where('MaKH', $customer->MaKH)
-            ->where('TrangThaiDoc', false)
-            ->count();
+        $reviewsCount = \App\Models\DanhGia::where('MaKH', $customer->MaKH)->count();
+        
+        $reviews = [];
+        if (request('tab') == 'reviews') {
+            $reviews = \App\Models\DanhGia::with('sanpham')
+                ->where('MaKH', $customer->MaKH)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
             
-        return view('home.profile', compact('customer', 'ordersInProgress', 'ordersCompleted', 'unreadCount'));
+        return view('home.profile', compact('customer', 'ordersInProgress', 'ordersCompleted', 'reviewsCount', 'reviews'));
+    }
+
+    public function notifications()
+    {
+        $user = Auth::user();
+        $khachHang = KhachHang::where('MaTK', $user->MaTK)->first();
+
+        if (!$khachHang) {
+            return redirect()->route('customer.profile')->with('error', 'Cần cập nhật thông tin trước.');
+        }
+
+        $notifications = ThongBao::where('MaKH', $khachHang->MaKH)
+            ->orderBy('NgayGui', 'desc')
+            ->paginate(10);
+
+        return view('home.notifications', compact('notifications', 'khachHang'));
     }
 
     public function updateProfile(Request $request)
@@ -117,7 +139,7 @@ class HomeController extends Controller
 
     public function orderDetail($id)
     {
-        $order = DonHang::with(['khachHang', 'chiTietDonHangs.sanPham'])->findOrFail($id);
+        $order = DonHang::with(['khachHang', 'chiTietDonHangs.sanPham', 'chiTietDonHangs.variant', 'statusLogs.user'])->findOrFail($id);
         
         // Kiểm tra quyền (chỉ chủ đơn hàng hoặc admin mới được xem)
         /** @var TaiKhoan $user */
@@ -180,6 +202,87 @@ class HomeController extends Controller
             DB::rollBack();
             return back()->with('error', 'Lỗi khi hủy đơn hàng: ' . $e->getMessage());
         }
+    }
+
+    public function requestReturn(Request $request, $id)
+    {
+        $request->validate([
+            'LyDo' => 'required|string|max:1000',
+            'HinhAnhMinhChung' => 'nullable|image|max:2048',
+        ]);
+
+        $order = DonHang::findOrFail($id);
+        $user = Auth::user();
+        $khachHang = KhachHang::where('MaTK', $user->MaTK)->first();
+
+        if (!$khachHang || $order->MaKH !== $khachHang->MaKH) {
+            return back()->with('error', 'Yêu cầu không hợp lệ.');
+        }
+
+        if ($order->TrangThaiDH !== 'DaGiao') {
+            return back()->with('error', 'Chỉ có thể yêu cầu trả hàng cho đơn hàng đã giao thành công.');
+        }
+
+        // Kiểm tra xem đã có yêu cầu trả hàng cho đơn này chưa
+        $exists = \App\Models\DonTraHang::where('MaDH', $id)->exists();
+        if ($exists) {
+            return back()->with('error', 'Yêu cầu trả hàng cho đơn này đã tồn tại.');
+        }
+
+        $hinhAnh = null;
+        if ($request->hasFile('HinhAnhMinhChung')) {
+            $file = $request->file('HinhAnhMinhChung');
+            $hinhAnh = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('assets/images/returns'), $hinhAnh);
+        }
+
+        \App\Models\DonTraHang::create([
+            'MaDH' => $id,
+            'LyDo' => $request->LyDo,
+            'HinhAnhMinhChung' => $hinhAnh,
+            'TrangThaiTra' => 'ChoDuyet',
+            'SoTienHoan' => $order->TongThanhToan
+        ]);
+
+        // Cập nhật trạng thái vận chuyển để biết đang có yêu cầu trả
+        $order->update(['TrangThaiVanChuyen' => 'TraHang']);
+
+        return back()->with('success', 'Đã gửi yêu cầu trả hàng. Vui lòng chờ quản trị viên duyệt.');
+    }
+
+    public function changePassword()
+    {
+        $user = Auth::user();
+        $khachHang = KhachHang::where('MaTK', $user->MaTK)->first();
+        if (!$khachHang) return redirect('/')->with('error', 'Không tìm thấy thông tin khách hàng.');
+        
+        return view('auth.change-password', compact('khachHang'));
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed',
+        ], [
+            'current_password.required' => 'Vui lòng nhập mật khẩu hiện tại.',
+            'new_password.required' => 'Vui lòng nhập mật khẩu mới.',
+            'new_password.min' => 'Mật khẩu mới phải có ít nhất 6 ký tự.',
+            'new_password.confirmed' => 'Xác nhận mật khẩu mới không khớp.',
+        ]);
+
+        /** @var TaiKhoan $user */
+        $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->MatKhau)) {
+            return back()->with('error', 'Mật khẩu hiện tại không chính xác.');
+        }
+
+        $user->update([
+            'MatKhau' => Hash::make($request->new_password)
+        ]);
+
+        return back()->with('success', 'Đổi mật khẩu thành công.');
     }
 }
 

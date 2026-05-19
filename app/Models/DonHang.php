@@ -15,8 +15,11 @@ class DonHang extends Model
         'NgayDat',
         'TongTienHang',
         'PhiShip',
+        'TongTien',
         'SoTienGiam',
         'TongThanhToan',
+        'TrangThai',
+        'PhuongThucThanhToan',
         'TrangThaiDH',
         'TrangThaiThanhToan',
         'TrangThaiVanChuyen',
@@ -25,6 +28,7 @@ class DonHang extends Model
         'PTThanhToan',
         'MaKM',
         'DiaChiGiao',
+        'DiaChiGiaoHang',
         'GhiChu',
         'SoTienDaThanhToan'
     ];
@@ -52,5 +56,10 @@ class DonHang extends Model
     public function donViVanChuyen()
     {
         return $this->belongsTo(DonViVanChuyen::class, 'MaDVVC', 'MaDVVC');
+    }
+
+    public function khuyenMai()
+    {
+        return $this->belongsTo(KhuyenMai::class, 'MaKM', 'MaKM');
     }
 }

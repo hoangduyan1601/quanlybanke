@@ -4,14 +4,14 @@
 <div class="container py-5" id="cart-container">
     <div class="d-flex align-items-center mb-5 pb-2" style="border-bottom: 2px solid var(--gold-primary);">
         <h2 class="font-luxury fw-bold m-0 text-dark text-uppercase">Kiệt Tác Trong Giỏ</h2>
-        <span class="ms-3 badge rounded-pill bg-dark px-3 py-2" id="total-items-badge" style="font-size: 0.7rem;">{{ !empty($cart) ? count($cart) : 0 }} ĐẦU SÁCH</span>
+        <span class="ms-3 badge rounded-pill bg-dark px-3 py-2" id="total-items-badge" style="font-size: 0.7rem;">{{ !empty($cart) ? count($cart) : 0 }} SẢN PHẨM</span>
     </div>
 
     @if(empty($cart))
         <div class="glass-panel text-center py-5 rounded-4 bg-white border-0">
             <img src="https://cdn-icons-png.flaticon.com/512/11329/11329060.png" width="100" class="mb-4 opacity-25">
             <h5 class="text-dark fw-bold">Giỏ hàng của bạn đang chờ đợi...</h5>
-            <p class="text-muted small mb-4">Hãy tiếp tục hành trình khám phá tri thức cùng chúng tôi.</p>
+            <p class="text-muted small mb-4">Hãy tiếp tục hành trình khám phá không gian cùng chúng tôi.</p>
             <a href="{{ route('sanpham.index') }}" class="btn btn-dark rounded-pill px-5 py-3 fw-bold">TIẾP TỤC KHÁM PHÁ</a>
         </div>
     @else
@@ -27,7 +27,7 @@
                                             <input class="form-check-input" type="checkbox" id="select-all" checked>
                                         </div>
                                     </th>
-                                    <th class="py-3">Tác Phẩm</th>
+                                    <th class="py-3">Sản Phẩm</th>
                                     <th class="text-center py-3">Đơn Giá</th>
                                     <th class="text-center py-3" style="width:140px;">Số Lượng</th>
                                     <th class="text-center py-3">Thành Tiền</th>
@@ -36,6 +36,10 @@
                             </thead>
                             <tbody id="cart-table-body">
                                 @foreach($cart as $id => $item)
+                                @php
+                                    $sp = \App\Models\SanPham::find($item['product_id']);
+                                    $imgUrl = $item['image'] ? (Str::startsWith($item['image'], 'http') ? $item['image'] : asset('assets/images/products/' . $item['image'])) : ($sp ? $sp->main_image_url : 'https://via.placeholder.com/100');
+                                @endphp
                                 <tr id="cart-row-{{ $id }}" class="cart-item-row" data-id="{{ $id }}" data-price="{{ $item['price'] }}" style="border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;">
                                     <td class="ps-4">
                                         <div class="form-check">
@@ -44,13 +48,16 @@
                                     </td>
                                     <td class="py-4">
                                         <div class="d-flex align-items-center">
-                                            <img src="{{ $item['image'] ? (Str::startsWith($item['image'], 'http') ? $item['image'] : asset('assets/images/products/' . $item['image'])) : 'https://via.placeholder.com/100' }}"
+                                            <img src="{{ $imgUrl }}"
                                                  class="rounded-3 shadow-sm me-3" style="width: 70px; height: 100px; object-fit: contain; background: white;">
                                             <div>
-                                                <a href="{{ route('sanpham.detail', $item['id']) }}" class="text-decoration-none text-dark fw-bold mb-1 d-block" style="font-size: 0.95rem;">
+                                                <a href="{{ route('sanpham.detail', $item['product_id']) }}" class="text-decoration-none text-dark fw-bold mb-1 d-block" style="font-size: 0.95rem;">
                                                     {{ $item['name'] }}
                                                 </a>
-                                                <span class="extra-small text-muted text-uppercase">Mã SP: #{{ $item['id'] }}</span>
+                                                @if($item['variant_info'])
+                                                    <div class="badge bg-light text-dark border extra-small mb-1 fw-normal">{{ $item['variant_info'] }}</div>
+                                                @endif
+                                                <div class="extra-small text-muted text-uppercase">Mã SP: #{{ $item['product_id'] }}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -174,6 +181,9 @@
 
                 const nameElement = row.querySelector('.fw-bold');
                 const name = nameElement ? nameElement.innerText : 'Sản phẩm';
+                const variantBadge = row.querySelector('.badge.bg-light');
+                const variantInfo = variantBadge ? ` <span class="extra-small text-muted">(${variantBadge.innerText})</span>` : '';
+                
                 const qtyInput = row.querySelector('.qty-input');
                 const qty = qtyInput ? qtyInput.value : 0;
                 const itemTotalElement = document.getElementById(`item-total-${cb.value}`);
@@ -186,7 +196,10 @@
                 // Add to summary detail list
                 const itemHtml = `
                     <div class="d-flex justify-content-between align-items-center mb-2 animate__animated animate__fadeIn">
-                        <span class="small text-truncate me-2" style="max-width: 150px;">${name}</span>
+                        <div class="small text-truncate me-2" style="max-width: 150px;">
+                            ${name}
+                            ${variantInfo}
+                        </div>
                         <span class="small text-muted">x${qty}</span>
                         <span class="small fw-bold ms-auto">${itemTotalStr}</span>
                     </div>

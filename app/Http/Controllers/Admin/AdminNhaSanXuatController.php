@@ -50,7 +50,6 @@ class AdminNhaSanXuatController extends Controller
         $request->validate([
             'TenNXB' => 'required',
         ]);
-
         $nxb = NhaSanXuat::findOrFail($id);
         $nxb->update($request->all());
 

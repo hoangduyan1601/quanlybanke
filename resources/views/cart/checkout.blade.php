@@ -17,6 +17,29 @@
         <div class="col-lg-7">
             <h5 class="font-luxury fw-bold mb-4 text-dark text-uppercase small" style="letter-spacing: 1px;">1. Địa Chỉ Giao Hàng</h5>
             
+            @if($addresses->isNotEmpty())
+            <div class="mb-4">
+                <label class="form-label fw-bold small text-muted mb-3">CHỌN TỪ SỔ ĐỊA CHỈ</label>
+                <div class="row g-3">
+                    @foreach($addresses as $addr)
+                    <div class="col-md-6">
+                        <div class="address-item p-3 border rounded-4 position-relative hover-gold transition-all cursor-pointer {{ $addr->MacDinh ? 'border-gold' : '' }}" 
+                             onclick="selectAddress({{ json_encode($addr) }}, this)" style="cursor: pointer; background: #fff;">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">{{ $addr->HoTenNguoiNhan }}</span>
+                                @if($addr->MacDinh)
+                                    <span class="badge bg-gold-soft text-gold extra-small" style="font-size: 0.6rem;">Mặc định</span>
+                                @endif
+                            </div>
+                            <div class="small text-muted mt-1">{{ $addr->SDTNguoiNhan }}</div>
+                            <div class="extra-small text-muted mt-1 lh-base">{{ $addr->DiaChiChiTiet }}, {{ $addr->PhuongXa }}, {{ $addr->QuanHuyen }}, {{ $addr->TinhThanh }}</div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
             <div class="glass-panel p-4 rounded-4 bg-white shadow-sm border-0 mb-5">
                 <form method="POST" action="{{ route('checkout.process') }}" id="checkout-form">
                     @csrf
@@ -24,19 +47,19 @@
                     <div class="row g-3">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold small text-muted">HỌ VÀ TÊN NGƯỜI NHẬN</label>
-                            <input type="text" name="fullname" class="form-control rounded-pill px-4 py-2 border" 
+                            <input type="text" name="fullname" id="fullname" class="form-control rounded-pill px-4 py-2 border" 
                                    value="{{ $khachHang->HoTen ?? '' }}" required style="background: var(--bg-soft);">
                         </div>
                         
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold small text-muted">SỐ ĐIỆN THOẠI</label>
-                            <input type="text" name="phone" class="form-control rounded-pill px-4 py-2 border" 
+                            <input type="text" name="phone" id="phone" class="form-control rounded-pill px-4 py-2 border" 
                                    value="{{ $khachHang->SDT ?? '' }}" required style="background: var(--bg-soft);">
                         </div>
                         
                         <div class="col-12 mb-4">
                             <label class="form-label fw-bold small text-muted">ĐỊA CHỈ GIAO HÀNG CHI TIẾT</label>
-                            <textarea name="address" class="form-control rounded-4 px-4 py-3 border" rows="3" required placeholder="Số nhà, tên đường, khu vực..." style="background: var(--bg-soft);">{{ $khachHang->DiaChi ?? '' }}</textarea>
+                            <textarea name="address" id="address" class="form-control rounded-4 px-4 py-3 border" rows="3" required placeholder="Số nhà, tên đường, khu vực..." style="background: var(--bg-soft);">{{ $khachHang->DiaChi ?? '' }}</textarea>
                         </div>
                     </div>
 
@@ -48,7 +71,7 @@
                                 <div class="bg-light p-2 rounded-3 me-3 text-success"><i class="fa-solid fa-money-bill-wave"></i></div>
                                 <div>
                                     <span class="fw-bold d-block text-dark">Thanh toán khi nhận hàng (COD)</span>
-                                    <small class="text-muted">Kiểm tra sách và thanh toán cho nhân viên giao hàng</small>
+                                    <small class="text-muted">Kiểm tra sản phẩm và thanh toán cho nhân viên giao hàng</small>
                                 </div>
                             </label>
                         </div>
@@ -92,21 +115,30 @@
                 <div class="glass-panel p-4 rounded-4 bg-white shadow-sm border-0 mb-4">
                     <div class="order-items mb-4" style="max-height: 300px; overflow-y: auto;">
                         @foreach ($cart as $item)
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="position-relative">
-                                    <img src="{{ $item['image'] ? asset('assets/images/products/' . $item['image']) : 'https://via.placeholder.com/60' }}" class="rounded-3 border" style="width: 50px; height: 70px; object-fit: contain; background: white;">
-                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style="font-size: 0.6rem;">{{ $item['qty'] }}</span>
+                            <div class="d-flex align-items-center mb-3 p-2 bg-light rounded-3">
+                                <div class="position-relative flex-shrink-0">
+                                    @php
+                                        $imgUrl = $item['image'] ? (Str::startsWith($item['image'], 'http') ? $item['image'] : asset('assets/images/products/' . $item['image'])) : 'https://via.placeholder.com/60';
+                                    @endphp
+                                    <img src="{{ $imgUrl }}" 
+                                         class="rounded-3 border bg-white" style="width: 50px; height: 60px; object-fit: contain;">
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark" style="font-size: 0.6rem; z-index: 1;">{{ $item['qty'] }}</span>
                                 </div>
-                                <div class="ms-3 flex-grow-1">
-                                    <div class="fw-bold text-dark text-truncate small" style="max-width: 200px;">{{ $item['name'] }}</div>
+                                <div class="ms-3 flex-grow-1 overflow-hidden">
+                                    <div class="fw-bold text-dark text-truncate small">{{ $item['name'] }}</div>
+                                    @if($item['variant_info'])
+                                        <div class="extra-small text-muted mb-1">{{ $item['variant_info'] }}</div>
+                                    @endif
                                     @if($item['price'] < $item['original_price'])
-                                        <small class="text-muted extra-small text-decoration-line-through">{{ number_format($item['original_price'], 0, ',', '.') }}₫</small>
-                                        <small class="text-danger fw-bold extra-small ms-1">{{ number_format($item['price'], 0, ',', '.') }}₫</small>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <small class="text-muted extra-small text-decoration-line-through">{{ number_format($item['original_price'], 0, ',', '.') }}₫</small>
+                                            <small class="text-danger fw-bold extra-small">{{ number_format($item['price'], 0, ',', '.') }}₫</small>
+                                        </div>
                                     @else
                                         <small class="text-muted extra-small">{{ number_format($item['price'], 0, ',', '.') }}₫</small>
                                     @endif
                                 </div>
-                                <div class="fw-bold text-dark small">{{ number_format($item['price'] * $item['qty'], 0, ',', '.') }}₫</div>
+                                <div class="fw-bold text-dark small flex-shrink-0 ms-2">{{ number_format($item['price'] * $item['qty'], 0, ',', '.') }}₫</div>
                             </div>
                         @endforeach
                     </div>
@@ -176,7 +208,7 @@
                 
                 <div class="p-4 rounded-4" style="background: rgba(175, 146, 69, 0.05); border: 1px dashed var(--gold-primary);">
                     <small class="text-muted d-block text-center lh-base" style="font-size: 0.75rem;">
-                        <i class="fa-solid fa-lock me-1"></i> Thanh toán an toàn và bảo mật. <br>Cam kết chất lượng sách chính hãng 100%.
+                        <i class="fa-solid fa-lock me-1"></i> Thanh toán an toàn và bảo mật. <br>Cam kết chất lượng sản phẩm chính hãng 100.
                     </small>
                 </div>
             </div>
@@ -189,10 +221,22 @@
     .form-check-input:checked { background-color: var(--text-main); border-color: var(--text-main); }
     .extra-small { font-size: 0.7rem; }
     .hover-bg-light:hover { background-color: var(--bg-soft); }
+    .address-item.active { border-color: var(--gold-primary) !important; background: var(--gold-soft) !important; }
 </style>
 
 <script>
     (function() {
+        window.selectAddress = function(addr, element) {
+            // Reset active state
+            document.querySelectorAll('.address-item').forEach(el => el.classList.remove('active', 'border-gold'));
+            element.classList.add('active', 'border-gold');
+            
+            // Fill form
+            document.getElementById('fullname').value = addr.HoTenNguoiNhan;
+            document.getElementById('phone').value = addr.SDTNguoiNhan;
+            document.getElementById('address').value = `${addr.DiaChiChiTiet}, ${addr.PhuongXa}, ${addr.QuanHuyen}, ${addr.TinhThanh}`;
+        };
+
         window.usePromo = function(code) {
             const promoInput = document.getElementById('promo-code');
             if (promoInput) {

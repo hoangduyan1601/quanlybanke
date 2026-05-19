@@ -15,34 +15,34 @@ class InitialDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Danh mục
+        // 1. Danh mục Kệ
         $danhmucs = [
-            ['TenDM' => 'Văn học', 'MoTa' => 'Các tác phẩm văn học kinh điển và hiện đại.'],
-            ['TenDM' => 'Kỹ năng sống', 'MoTa' => 'Sách phát triển bản thân, kỹ năng giao tiếp.'],
-            ['TenDM' => 'Khoa học - Lịch sử', 'MoTa' => 'Khám phá thế giới và lịch sử nhân loại.'],
-            ['TenDM' => 'Kinh tế - Quản trị', 'MoTa' => 'Kiến thức về kinh doanh và quản lý.'],
-            ['TenDM' => 'Công nghệ thông tin', 'MoTa' => 'Lập trình, AI và xu hướng công nghệ.'],
+            ['TenDM' => 'Kệ Siêu Thị', 'MoTa' => 'Kệ trưng bày hàng hóa trong siêu thị, cửa hàng tiện lợi.'],
+            ['TenDM' => 'Kệ Kho Hàng', 'MoTa' => 'Kệ tải trọng nặng dùng trong kho xưởng, logistics.'],
+            ['TenDM' => 'Kệ Gia Dụng', 'MoTa' => 'Kệ nhà bếp, kệ phòng khách, kệ đa năng dùng trong gia đình.'],
+            ['TenDM' => 'Kệ Văn Phòng', 'MoTa' => 'Kệ hồ sơ, kệ sách, kệ trang trí văn phòng.'],
+            ['TenDM' => 'Phụ Kiện Kệ', 'MoTa' => 'Móc treo, thanh ngang, rào chắn và các phụ kiện đi kèm.'],
         ];
         foreach ($danhmucs as $dm) {
             DanhMuc::updateOrCreate(['TenDM' => $dm['TenDM']], $dm);
         }
 
-        // 2. Nhà xuất bản
+        // 2. Nhà sản xuất Kệ
         $nxbs = [
-            ['TenNXB' => 'NXB Trẻ', 'DiaChi' => '161B Lý Chính Thắng, Quận 3, TP.HCM'],
-            ['TenNXB' => 'NXB Kim Đồng', 'DiaChi' => '55 Quang Trung, Hai Bà Trưng, Hà Nội'],
-            ['TenNXB' => 'NXB Nhã Nam', 'DiaChi' => '59 Đỗ Quang, Trung Hòa, Cầu Giấy, Hà Nội'],
-            ['TenNXB' => 'NXB Tổng hợp TP.HCM', 'DiaChi' => '62 Nguyễn Thị Minh Khai, Quận 1, TP.HCM'],
+            ['TenNXB' => 'Cơ khí Việt', 'DiaChi' => 'Lô MG1, Đường số 1, KCN Đức Hòa 1, Long An'],
+            ['TenNXB' => 'Kệ Sắt Thăng Long', 'DiaChi' => 'Số 18 Dương Đình Nghệ, Cầu Giấy, Hà Nội'],
+            ['TenNXB' => 'Vinatech Group', 'DiaChi' => 'Tầng 8 Tòa nhà Đại Phát, Ngõ 82 Duy Tân, Hà Nội'],
+            ['TenNXB' => 'Cơ khí Hòa Phát', 'DiaChi' => 'KCN Như Quỳnh, Văn Lâm, Hưng Yên'],
         ];
         foreach ($nxbs as $nxb) {
             NhaSanXuat::updateOrCreate(['TenNXB' => $nxb['TenNXB']], $nxb);
         }
 
-        // 3. Nhà cung cấp
+        // 3. Nhà cung cấp vật tư
         $nccs = [
-            ['TenNCC' => 'Công ty CP Phát hành sách FAHASA', 'SDT' => '1900636467', 'Email' => 'info@fahasa.com'],
-            ['TenNCC' => 'Công ty Văn hóa Phương Nam', 'SDT' => '19006650', 'Email' => 'hotro@pnc.com.vn'],
-            ['TenNCC' => 'Tiki Trading', 'SDT' => '19006035', 'Email' => 'hotro@tiki.vn'],
+            ['TenNCC' => 'Tập đoàn Hòa Phát', 'SDT' => '02436282011', 'Email' => 'thep@hoaphat.com.vn'],
+            ['TenNCC' => 'Thép Việt Nhật', 'SDT' => '02439425666', 'Email' => 'sales@vinakyoei.com.vn'],
+            ['TenNCC' => 'Sơn Tĩnh Điện AkzoNobel', 'SDT' => '02838230560', 'Email' => 'interpon.vietnam@akzonobel.com'],
         ];
         foreach ($nccs as $ncc) {
             NhaCungCap::updateOrCreate(['TenNCC' => $ncc['TenNCC']], $ncc);
@@ -52,7 +52,7 @@ class InitialDataSeeder extends Seeder
         $adminTK = TaiKhoan::updateOrCreate(
             ['TenDangNhap' => 'admin'],
             [
-                'MatKhau' => Hash::make('admin123'),
+                'MatKhau' => 'admin123', // Tắt mã hóa
                 'VaiTro' => 'admin',
                 'TrangThai' => 1
             ]
@@ -61,7 +61,7 @@ class InitialDataSeeder extends Seeder
         $userTK = TaiKhoan::updateOrCreate(
             ['TenDangNhap' => 'user'],
             [
-                'MatKhau' => Hash::make('user123'),
+                'MatKhau' => 'user123', // Tắt mã hóa
                 'VaiTro' => 'user',
                 'TrangThai' => 1
             ]

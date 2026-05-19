@@ -161,7 +161,7 @@ class AdminDonHangController extends Controller
 
     public function show($id)
     {
-        $order = DonHang::with(['khachHang', 'chiTietDonHangs.sanPham', 'khuyenMai'])->findOrFail($id);
+        $order = DonHang::with(['khachHang', 'chiTietDonHangs.sanPham', 'chiTietDonHangs.variant', 'khuyenMai'])->findOrFail($id);
         return view('admin.donhang.show', compact('order'));
     }
 
@@ -173,9 +173,70 @@ class AdminDonHangController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $order = DonHang::with('khachHang')->findOrFail($id);
-        $order->TrangThaiDH = $request->status;
+        $order = DonHang::with('khachHang', 'chiTietDonHangs')->findOrFail($id);
+        $oldStatus = $order->TrangThaiDH;
+        $newStatus = $request->status;
+        
+        if ($oldStatus === $newStatus) {
+            return redirect()->back();
+        }
+
+        $order->TrangThaiDH = $newStatus;
         $order->save();
+
+        // Logic cập nhật tồn kho khi hủy/khôi phục đơn hàng
+        if ($newStatus === 'DaHuy' && $oldStatus !== 'DaHuy') {
+            // Đơn hàng bị hủy -> Hoàn lại tồn kho
+            foreach ($order->chiTietDonHangs as $ct) {
+                if ($ct->sanPham) {
+                    $ct->sanPham->increment('SoLuong', $ct->SoLuong);
+                    if ($ct->sanPham->SoLuongDaBan >= $ct->SoLuong) {
+                        $ct->sanPham->decrement('SoLuongDaBan', $ct->SoLuong);
+                    }
+                }
+                if ($ct->MaVariant) {
+                    $variant = \App\Models\SanPhamVariant::find($ct->MaVariant);
+                    if ($variant) {
+                        $variant->increment('SoLuongTon', $ct->SoLuong);
+                    }
+                }
+            }
+        } elseif ($oldStatus === 'DaHuy' && $newStatus !== 'DaHuy') {
+            // Kiểm tra tồn kho trước khi khôi phục
+            foreach ($order->chiTietDonHangs as $ct) {
+                if ($ct->sanPham && $ct->sanPham->SoLuong < $ct->SoLuong) {
+                    return redirect()->back()->with('error', "Không thể khôi phục đơn hàng. Sản phẩm [{$ct->sanPham->TenSP}] không đủ tồn kho!");
+                }
+                if ($ct->MaVariant) {
+                    $variant = \App\Models\SanPhamVariant::find($ct->MaVariant);
+                    if ($variant && $variant->SoLuongTon < $ct->SoLuong) {
+                        return redirect()->back()->with('error', "Không thể khôi phục đơn hàng. Biến thể của sản phẩm [{$ct->sanPham->TenSP}] không đủ tồn kho!");
+                    }
+                }
+            }
+
+            // Khôi phục từ đơn hàng đã hủy -> Trừ lại tồn kho
+            foreach ($order->chiTietDonHangs as $ct) {
+                if ($ct->sanPham) {
+                    $ct->sanPham->decrement('SoLuong', $ct->SoLuong);
+                    $ct->sanPham->increment('SoLuongDaBan', $ct->SoLuong);
+                }
+                if ($ct->MaVariant) {
+                    $variant = \App\Models\SanPhamVariant::find($ct->MaVariant);
+                    if ($variant) {
+                        $variant->decrement('SoLuongTon', $ct->SoLuong);
+                    }
+                }
+            }
+        }
+
+        // Ghi log trạng thái
+        \App\Models\DonHangStatusLog::create([
+            'MaDH' => $id,
+            'UserID' => auth()->id(),
+            'HanhDong' => "Thay đổi trạng thái từ $oldStatus sang $newStatus",
+            'GhiChu' => $request->ghi_chu ?? 'Admin cập nhật trạng thái'
+        ]);
 
         // Gửi thông báo cho khách hàng
         try {

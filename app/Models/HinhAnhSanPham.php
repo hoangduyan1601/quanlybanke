@@ -15,5 +15,13 @@ class HinhAnhSanPham extends Model
         'DuongDan',
         'LaAnhChinh',
     ];
+
+    public function getUrlAttribute()
+    {
+        if (filter_var($this->DuongDan, FILTER_VALIDATE_URL)) {
+            return $this->DuongDan;
+        }
+        return asset('assets/images/products/' . $this->DuongDan);
+    }
 }
 

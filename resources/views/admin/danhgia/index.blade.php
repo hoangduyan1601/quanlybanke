@@ -27,6 +27,34 @@
         </div>
     </div>
 
+    <!-- Filters & Search -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <form action="{{ route('admin.danhgia.index') }}" method="GET" class="row g-3">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="search" class="form-control bg-light border-start-0" placeholder="Tìm theo sản phẩm, khách hàng, nội dung..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="rating" class="form-select bg-light">
+                        <option value="">Tất cả đánh giá</option>
+                        @for($i=5; $i>=1; $i--)
+                            <option value="{{ $i }}" {{ request('rating') == $i ? 'selected' : '' }}>{{ $i }} sao</option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 rounded-3">Lọc</button>
+                </div>
+                <div class="col-md-2 text-end">
+                    <a href="{{ route('admin.danhgia.index') }}" class="btn btn-light w-100 rounded-3"><i class="fas fa-sync-alt me-1"></i> Làm mới</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -50,7 +78,7 @@
                                 <small class="text-muted">{{ $item->khachhang->Email ?? '' }}</small>
                             </td>
                             <td>
-                                <div class="text-truncate" style="max-width: 200px;">{{ $item->sanpham->TenSP ?? 'N/A' }}</div>
+                                <div class="text-truncate" style="max-width: 200px;" title="{{ $item->sanpham->TenSP ?? 'N/A' }}">{{ $item->sanpham->TenSP ?? 'N/A' }}</div>
                             </td>
                             <td>
                                 <div class="text-warning">
@@ -63,7 +91,9 @@
                                 <div class="small">{{ $item->NoiDung }}</div>
                                 @if($item->HinhAnhDG)
                                     <div class="mt-2">
-                                        <img src="{{ asset($item->HinhAnhDG) }}" class="review-img shadow-sm">
+                                        <a href="{{ asset($item->HinhAnhDG) }}" target="_blank">
+                                            <img src="{{ asset($item->HinhAnhDG) }}" class="review-img shadow-sm rounded">
+                                        </a>
                                     </div>
                                 @endif
                             </td>

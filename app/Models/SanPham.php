@@ -26,6 +26,8 @@ class SanPham extends Model
         'TrangThai'
     ];
 
+    protected $appends = ['main_image_url'];
+
     public function danhmuc()
     {
         return $this->belongsTo(DanhMuc::class, 'MaDM', 'MaDM');
@@ -83,6 +85,21 @@ class SanPham extends Model
         return $this->ThuongHieus ? $this->ThuongHieus->pluck('Tenthuonghieu')->implode(', ') : '';
     }
 
+    public function danhgias()
+    {
+        return $this->hasMany(DanhGia::class, 'MaSP', 'MaSP');
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return $this->danhgias()->avg('SoSao') ?: 0;
+    }
+
+    public function getReviewCountAttribute()
+    {
+        return $this->danhgias()->count();
+    }
+
     public function getIsFavoriteAttribute()
     {
         if (Auth::check()) {
@@ -121,6 +138,25 @@ class SanPham extends Model
             return $this->DonGia * (1 - $km->PhanTramGiam / 100);
         }
         return $this->DonGia;
+    }
+
+    public function getMainImageUrlAttribute()
+    {
+        $displayImage = $this->HinhAnh;
+        if (empty($displayImage) && $this->hinhanhsanpham->count() > 0) {
+            $displayImage = $this->hinhanhsanpham->first()->DuongDan;
+        }
+
+        if (empty($displayImage)) {
+            // Mặc định ảnh kệ nếu không có ảnh
+            return 'https://images.unsplash.com/photo-1594488630399-bf8351a1ee4d?q=80&w=300&auto=format&fit=crop';
+        }
+
+        if (filter_var($displayImage, FILTER_VALIDATE_URL)) {
+            return $displayImage;
+        }
+
+        return asset('assets/images/products/' . $displayImage);
     }
 }
 

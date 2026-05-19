@@ -1,45 +1,190 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Scroll Progress Bar -->
-<div id="scroll-progress"></div>
-
-<!-- Hero Section (Giữ lại nhưng làm sang trọng hơn) -->
-<section class="position-relative d-flex align-items-center justify-content-center overflow-hidden" style="height: 90vh; background: #fbfbfb;">
-    <div class="container position-relative z-1">
-        <div class="row align-items-center">
-            <div class="col-lg-6" data-aos="fade-right">
-                <span class="text-uppercase ls-3 small fw-bold text-muted mb-3 d-block">The Spring Collection 2026</span>
-                <h1 class="font-luxury display-1 mb-4" style="line-height: 1.1;">Nơi Không Gian <br> Trở Thành <span style="font-style: italic">Kiệt Tác</span></h1>
-                <p class="lead text-muted mb-5 pe-lg-5">Khám phá bộ sưu tập những mẫu kệ gia dụng thông minh và nội thất tinh tế được thiết kế dành riêng cho ngôi nhà hiện đại.</p>
-                <div class="d-flex gap-4">
-                    <a href="{{ route('sanpham.index') }}" class="btn btn-dark rounded-0 px-5 py-3 ls-2">MUA SẮM NGAY</a>
-                    <a href="{{ route('baiviet.index') }}" class="btn btn-outline-dark rounded-0 px-5 py-3 ls-2">CẢM HỨNG</a>
+<!-- 1. HERO SLIDER -->
+<div id="homeHero" class="carousel slide carousel-fade" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#homeHero" data-bs-slide-to="0" class="active" aria-current="true"></button>
+        <button type="button" data-bs-target="#homeHero" data-bs-slide-to="1"></button>
+        <button type="button" data-bs-target="#homeHero" data-bs-slide-to="2"></button>
+    </div>
+    <div class="carousel-inner">
+        <!-- Slide 1: Enterprise focus -->
+        <div class="carousel-item active" style="height: 650px;">
+            <div class="hero-overlay" style="background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%), url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=2000&auto=format&fit=crop') center/cover;"></div>
+            <div class="container h-100 d-flex align-items-center">
+                <div class="hero-content text-white" style="max-width: 650px;">
+                    <h5 class="text-gold fw-bold text-uppercase mb-3 tracking-widest animate__animated animate__fadeInDown">Giải pháp lưu trữ thông minh</h5>
+                    <h1 class="display-3 fw-900 mb-4 animate__animated animate__fadeInLeft">HỆ THỐNG KỆ <br> <span class="text-gold">CHUẨN DOANH NGHIỆP</span></h1>
+                    <p class="lead mb-5 opacity-90 animate__animated animate__fadeInUp animate__delay-1s">Chịu tải cực lớn, độ bền trên 10 năm. Thiết kế tối ưu cho kho bãi và showroom hiện đại. Lắp đặt trọn gói toàn quốc.</p>
+                    <div class="d-flex gap-3 animate__animated animate__fadeInUp animate__delay-1s">
+                        <a href="{{ route('sanpham.index') }}" class="btn btn-gold btn-lg px-5 py-3 fw-bold rounded-0">XEM BÁO GIÁ</a>
+                        <a href="#" class="btn btn-outline-light btn-lg px-5 py-3 fw-bold rounded-0">TƯ VẤN NGAY</a>
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-6 mt-5 mt-lg-0" data-aos="fade-left">
-                <div class="position-relative">
-                    <div class="luxury-blob"></div>
-                    <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=1000&auto=format&fit=crop" alt="Luxury Shelves" class="img-fluid position-relative z-1 shadow-2xl rounded-2">
+        </div>
+
+        <!-- Slide 2: Luxury Home focus -->
+        <div class="carousel-item" style="height: 650px;">
+            <div class="hero-overlay" style="background: linear-gradient(270deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%), url('https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=2000&auto=format&fit=crop') center/cover;"></div>
+            <div class="container h-100 d-flex align-items-center justify-content-end">
+                <div class="hero-content text-white text-end" style="max-width: 650px;">
+                    <h5 class="text-gold fw-bold text-uppercase mb-3 tracking-widest">Nâng tầm không gian sống</h5>
+                    <h1 class="display-3 fw-900 mb-4">KỆ GIA DỤNG <br> <span class="text-gold">SANG TRỌNG</span></h1>
+                    <p class="lead mb-5 opacity-90">Sơn tĩnh điện cao cấp, chống gỉ sét tuyệt đối. Sự kết hợp hoàn hảo giữa công năng và tính thẩm mỹ cho ngôi nhà của bạn.</p>
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="{{ route('sanpham.index') }}" class="btn btn-gold btn-lg px-5 py-3 fw-bold rounded-0">BỘ SƯU TẬP 2024</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Promotion focus -->
+        <div class="carousel-item" style="height: 650px;">
+            <div class="hero-overlay" style="background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%), url('https://images.unsplash.com/photo-1517502884422-41eaead166d4?q=80&w=2000&auto=format&fit=crop') center/cover;"></div>
+            <div class="container h-100 d-flex align-items-center justify-content-center text-center">
+                <div class="hero-content text-white" style="max-width: 800px;">
+                    <h5 class="text-gold fw-bold text-uppercase mb-3 tracking-widest">Ưu đãi độc quyền tháng 5</h5>
+                    <h1 class="display-2 fw-900 mb-4">GIẢM ĐẾN <span class="text-gold">30%</span> <br> TẤT CẢ SẢN PHẨM</h1>
+                    <p class="lead mb-5 opacity-90">Miễn phí vận chuyển nội thành cho đơn hàng từ 5.000.000đ. Bảo hành 5 năm lỗi 1 đổi 1.</p>
+                    <a href="{{ route('sanpham.index') }}" class="btn btn-light btn-lg px-5 py-3 fw-bold rounded-0">MUA SẮM NGAY</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Controls -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#homeHero" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon p-3 bg-dark rounded-circle" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#homeHero" data-bs-slide="next">
+        <span class="carousel-control-next-icon p-3 bg-dark rounded-circle" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<!-- 1.1 FEATURES BAR -->
+<section class="features-bar py-4 bg-white shadow-sm position-relative" style="margin-top: -50px; z-index: 10;">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-3 border-end">
+                <div class="d-flex align-items-center justify-content-center gap-3">
+                    <i class="fa-solid fa-truck-fast fs-2 text-gold"></i>
+                    <div class="text-start">
+                        <h6 class="mb-0 fw-bold">Giao hàng nhanh</h6>
+                        <small class="text-muted">Nội thành trong 2h</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 border-end">
+                <div class="d-flex align-items-center justify-content-center gap-3">
+                    <i class="fa-solid fa-shield-halved fs-2 text-gold"></i>
+                    <div class="text-start">
+                        <h6 class="mb-0 fw-bold">Bảo hành 5 năm</h6>
+                        <small class="text-muted">Lỗi 1 đổi 1 tận nhà</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 border-end">
+                <div class="d-flex align-items-center justify-content-center gap-3">
+                    <i class="fa-solid fa-screwdriver-wrench fs-2 text-gold"></i>
+                    <div class="text-start">
+                        <h6 class="mb-0 fw-bold">Miễn phí lắp đặt</h6>
+                        <small class="text-muted">Cho đơn hàng dự án</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex align-items-center justify-content-center gap-3">
+                    <i class="fa-solid fa-headset fs-2 text-gold"></i>
+                    <div class="text-start">
+                        <h6 class="mb-0 fw-bold">Hỗ trợ 24/7</h6>
+                        <small class="text-muted">Kỹ thuật viên chuyên nghiệp</small>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Featured Categories -->
-<section class="py-100 bg-white">
+<!-- 2. PREMIUM CATEGORY GRID -->
+<section class="py-5 bg-white">
+    <div class="container pt-5">
+        <div class="section-premium-title text-center mx-auto" style="max-width: 600px;">
+            <h5 class="text-gold fw-bold text-uppercase mb-2" style="font-size: 14px; letter-spacing: 2px;">Danh mục nổi bật</h5>
+            <h2 class="mb-4">GIẢI PHẠP THEO KHÔNG GIAN</h2>
+            <div class="title-line mx-auto mb-5"></div>
+        </div>
+        <div class="row g-4 justify-content-center">
+            @php
+                $catImages = [
+                    'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=1000&auto=format&fit=crop', // Kitchen
+                    'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=1000&auto=format&fit=crop', // Living room
+                    'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1000&auto=format&fit=crop', // Warehouse
+                    'https://images.unsplash.com/photo-1517502884422-41eaead166d4?q=80&w=1000&auto=format&fit=crop', // Office
+                    'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1000&auto=format&fit=crop'  // Bathroom
+                ];
+            @endphp
+            @foreach($danhmucs->take(5) as $index => $dm)
+            <div class="col-lg-2 col-md-4 col-6">
+                <a href="{{ route('danhmuc.show', $dm->MaDM) }}" class="category-box-modern shadow-sm">
+                    <div class="img-container">
+                        <img src="{{ $catImages[$index % count($catImages)] }}" alt="{{ $dm->TenDM }}">
+                    </div>
+                    <div class="content">
+                        <h6 class="fw-bold mb-1">{{ $dm->TenDM }}</h6>
+                        <div class="count small opacity-75">100+ sản phẩm</div>
+                    </div>
+                </a>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<!-- 3. HOT PRODUCTS BLOCK (PREMIUM CARD) -->
+<section class="py-5 bg-light">
     <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-5">
+            <div class="section-premium-title mb-0">
+                <h5 class="text-gold fw-bold text-uppercase mb-2" style="font-size: 14px; letter-spacing: 2px;">Lựa chọn hàng đầu</h5>
+                <h2 class="mb-0">SẢN PHẨM BÁN CHẠY NHẤT</h2>
+            </div>
+            <a href="{{ route('sanpham.index') }}" class="btn btn-outline-dark btn-sm rounded-0 px-4 py-2 text-uppercase fw-bold">Xem tất cả <i class="fa-solid fa-arrow-right ms-2"></i></a>
+        </div>
         <div class="row g-4">
-            @foreach($danhmucs->take(3) as $dm)
-            <div class="col-md-4">
-                <div class="category-card position-relative overflow-hidden group">
-                    <img src="https://images.unsplash.com/photo-1567016432779-094069958ad5?q=80&w=1000&auto=format&fit=crop" class="img-fluid transition-all duration-700 group-hover:scale-110">
-                    <div class="position-absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center transition-all group-hover:bg-opacity-40">
-                        <div class="text-center text-white">
-                            <h4 class="font-luxury mb-3">{{ $dm->TenDM }}</h4>
-                            <a href="{{ route('danhmuc.show', $dm->MaDM) }}" class="text-white text-decoration-none border-bottom border-white pb-1 small ls-2">XEM CHI TIẾT</a>
+            @foreach($bestSellers->take(8) as $sp)
+            <div class="col-xl-3 col-md-4 col-6">
+                <div class="product-card-premium shadow-sm h-100 d-flex flex-column bg-white border-0 overflow-hidden">
+                    <div class="img-wrap position-relative">
+                        @if($sp->khuyen_mai_active)
+                            <span class="badge-sale">-{{ (int)$sp->khuyen_mai_active->PhanTramGiam }}%</span>
+                        @endif
+                        <div class="action-buttons">
+                            <button class="btn-action" title="Yêu thích"><i class="fa-regular fa-heart"></i></button>
+                            <button class="btn-action" title="Xem nhanh"><i class="fa-solid fa-eye"></i></button>
                         </div>
+                        <a href="{{ route('sanpham.detail', $sp->MaSP) }}" class="d-block h-100 w-100 p-4">
+                            <img src="{{ $sp->main_image_url }}" 
+                                 alt="{{ $sp->TenSP }}" class="img-fluid main-img">
+                        </a>
+                    </div>
+                    <div class="info-wrap p-4 text-center">
+                        <small class="text-uppercase text-muted fw-bold mb-2 d-block tracking-widest" style="font-size: 10px;">{{ $sp->danhmuc->TenDM ?? 'Gia dụng' }}</small>
+                        <h6 class="fw-bold mb-3"><a href="{{ route('sanpham.detail', $sp->MaSP) }}" class="text-dark">{{ $sp->TenSP }}</a></h6>
+                        
+                        <div class="price-wrap mb-4">
+                            <span class="price-current fw-bold text-danger fs-5">{{ number_format($sp->gia_hien_tai, 0, ',', '.') }}₫</span>
+                            @if($sp->khuyen_mai_active)
+                                <span class="price-old text-muted text-decoration-line-through ms-2 small">{{ number_format($sp->DonGia, 0, ',', '.') }}₫</span>
+                            @endif
+                        </div>
+                        
+                        <button onclick="addToCartIndex({{ $sp->MaSP }})" class="btn btn-dark w-100 rounded-0 py-3 text-uppercase fw-bold small shadow-sm hover-gold-bg">
+                            <i class="fa-solid fa-cart-plus me-2"></i> THÊM VÀO GIỎ
+                        </button>
                     </div>
                 </div>
             </div>
@@ -48,97 +193,47 @@
     </div>
 </section>
 
-<!-- Best Sellers - The Curator's Choice -->
-<section class="py-100 container">
-    <div class="text-center mb-100">
-        <span class="section-tag">Best Sellers</span>
-        <h2 class="font-luxury display-4">Lựa Chọn <span style="font-style: italic">Hoàn Hảo</span></h2>
-    </div>
-
-    <div class="row g-5">
-        @foreach($bestSellers as $sp)
-        <div class="col-md-3">
-            <div class="product-card">
-                <div class="img-box position-relative">
-                    <img src="{{ $sp->HinhAnh ? (Str::startsWith($sp->HinhAnh, 'http') ? $sp->HinhAnh : asset('assets/images/products/' . $sp->HinhAnh)) : 'https://via.placeholder.com/400x600' }}" class="img-fluid w-100 h-100 object-fit-contain transition-all">
-                    
-                    <div class="card-actions position-absolute top-0 end-0 p-3 d-flex flex-column gap-2" style="opacity: 0; transform: translateX(20px); transition: 0.3s; z-index: 10;">
-                        <a href="{{ route('sanpham.detail', $sp->MaSP) }}" class="action-btn" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></a>
-                        <button onclick="addToCartIndex({{ $sp->MaSP }})" class="action-btn" title="Thêm vào giỏ"><i class="fa-solid fa-cart-plus"></i></button>
-                        <button onclick="toggleFavorite({{ $sp->MaSP }}, this)" class="action-btn {{ $sp->is_favorite ? 'active' : '' }}" title="Yêu thích">
-                            <i class="{{ $sp->is_favorite ? 'fa-solid' : 'fa-regular' }} fa-heart"></i>
-                        </button>
-                    </div>
-
-                    @if($sp->SoLuong <= 0) 
-                        <div class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-50 d-flex align-items-center justify-content-center">
-                            <span class="badge bg-dark px-3 py-2 rounded-0 ls-2">HẾT HÀNG</span>
-                        </div>
-                    @endif
-                </div>
-                <div class="py-4">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="extra-small text-muted text-uppercase ls-2">{{ $sp->danhmuc->TenDM ?? 'Tổng hợp' }}</span>
-                        <div class="text-warning extra-small"><i class="fa-solid fa-star"></i> 5.0</div>
-                    </div>
-                    <a href="{{ route('sanpham.detail', $sp->MaSP) }}" class="product-name text-decoration-none fw-bold text-dark d-block mb-1 fs-6" style="height: 3rem; overflow: hidden;">{{ $sp->TenSP }}</a>
-                    <div class="text-muted extra-small mb-3 text-truncate">
-                        <i class="fa-solid fa-hammer me-1 opacity-50"></i> {{ $sp->thuong_hieu_string ?: 'Thương hiệu cao cấp' }}
-                    </div>
-                    <div class="d-flex justify-content-between align-items-end">
-                        <div class="pe-2">
-                            @if($sp->khuyen_mai_active)
-                                <div class="text-muted extra-small text-decoration-line-through">{{ number_format($sp->DonGia, 0, ',', '.') }}₫</div>
-                                <div class="text-danger fw-bold fs-5" style="line-height: 1;">{{ number_format($sp->gia_hien_tai, 0, ',', '.') }}₫</div>
-                            @else
-                                <div class="text-dark fw-bold fs-5" style="line-height: 1;">{{ number_format($sp->DonGia, 0, ',', '.') }}₫</div>
-                            @endif
-                        </div>
-                        <span class="text-muted extra-small pb-1">Đã bán {{ (int)$sp->SoLuongDaBan }}</span>
-                    </div>
-                </div>
-            </div>
+<!-- 4. CTA BANNER -->
+<section class="cta-banner py-5" style="background: fixed url('https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=2000&auto=format&fit=crop') center/cover;">
+    <div class="overlay py-5" style="background: rgba(0,0,0,0.6);">
+        <div class="container text-center text-white py-5">
+            <h2 class="display-5 fw-800 mb-4">THIẾT KỆ THEO YÊU CẦU DỰ ÁN</h2>
+            <p class="lead mb-5 mx-auto" style="max-width: 700px;">Chúng tôi cung cấp dịch vụ đo đạc, thiết kế 3D và thi công lắp đặt trọn gói hệ thống kệ kho, kệ siêu thị cho doanh nghiệp của bạn.</p>
+            <a href="#" class="btn btn-gold btn-lg px-5 py-3 fw-bold rounded-0">LIÊN HỆ TƯ VẤN KỸ THUẬT</a>
         </div>
-        @endforeach
     </div>
 </section>
 
-<!-- Editorial Section -->
-<section class="container py-100">
-    <div class="row align-items-center">
-        <div class="col-md-5">
-            <span class="section-tag">Journal</span>
-            <h2 class="font-luxury display-4 mb-4">Câu Chuyện Về <span style="font-style: italic">Sự Sắp Đặt</span></h2>
-            <p class="text-muted mb-5">Khám phá nghệ thuật tối ưu hóa không gian, xu hướng nội thất 2026 và cách để biến ngôi nhà trở thành nơi nghỉ dưỡng lý tưởng.</p>
-            <a href="{{ route('baiviet.index') }}" class="btn btn-dark rounded-0 px-5 py-3 ls-2">XEM BÀI VIẾT</a>
+<!-- 5. LATEST NEWS / PROJECTS -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="section-premium-title text-center mx-auto mb-5" style="max-width: 600px;">
+            <h5 class="text-gold fw-bold text-uppercase mb-2" style="font-size: 14px; letter-spacing: 2px;">Tin tức & Xu hướng</h5>
+            <h2 class="mb-4">CẢM HỨNG KHÔNG GIAN</h2>
+            <div class="title-line mx-auto"></div>
         </div>
-        <div class="col-md-7 ps-md-5 mt-5 mt-md-0">
-            <div class="row g-4">
-                @foreach($latestArticles as $index => $bv)
-                <div class="col-6 {{ $index % 2 != 0 ? 'mt-5' : '' }}">
-                    <div class="overflow-hidden mb-3">
-                        <img src="{{ $bv->HinhAnh ? (Str::startsWith($bv->HinhAnh, 'http') ? $bv->HinhAnh : asset($bv->HinhAnh)) : 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1000&auto=format&fit=crop' }}" class="img-fluid rounded-0 shadow-sm hover-scale transition-all" style="height: 250px; width: 100%; object-fit: cover;">
+        <div class="row g-4">
+            @foreach($latestArticles->take(3) as $bv)
+            <div class="col-md-4">
+                <div class="blog-card shadow-sm h-100 border-0 overflow-hidden">
+                    <div class="img-wrap position-relative overflow-hidden">
+                        <img src="{{ $bv->HinhAnh ? (Str::startsWith($bv->HinhAnh, 'http') ? $bv->HinhAnh : asset($bv->HinhAnh)) : 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=1000' }}" class="img-fluid w-100" style="height: 250px; object-fit: cover; transition: 0.6s;">
+                        <div class="date-badge">{{ \Carbon\Carbon::parse($bv->NgayDang)->format('d/m') }}</div>
                     </div>
-                    <a href="{{ route('baiviet.show', $bv->Slug) }}" class="text-decoration-none text-dark">
-                        <h6 class="fw-bold">{{ $bv->TieuDe }}</h6>
-                    </a>
-                    <span class="extra-small text-muted">{{ strtoupper(\Carbon\Carbon::parse($bv->NgayDang)->translatedFormat('d F, Y')) }}</span>
+                    <div class="p-4 bg-white">
+                        <h5 class="fw-bold mb-3"><a href="{{ route('baiviet.show', $bv->Slug) }}" class="text-dark">{{ $bv->TieuDe }}</a></h5>
+                        <p class="small text-muted mb-4">{{ Str::limit($bv->TomTat, 120) }}</p>
+                        <a href="{{ route('baiviet.show', $bv->Slug) }}" class="text-gold fw-bold text-uppercase small tracking-widest text-decoration-none border-bottom border-gold pb-1">Đọc tiếp <i class="fa-solid fa-arrow-right ms-2"></i></a>
+                    </div>
                 </div>
-                @endforeach
             </div>
+            @endforeach
         </div>
     </div>
 </section>
 
 @push('scripts')
 <script>
-    window.onscroll = function() {
-        let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        let scrolled = (winScroll / height) * 100;
-        document.getElementById("scroll-progress").style.width = scrolled + "%";
-    };
-
     function addToCartIndex(id) {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         fetch(`{{ url('/cart/add') }}`, {
@@ -150,12 +245,7 @@
         .then(data => {
             if(data.status === 'success') {
                 alert('Đã thêm sản phẩm vào giỏ hàng!');
-
-                const cartBadge = document.getElementById('cart-count-badge');
-                if (cartBadge) {
-                    cartBadge.innerText = data.cartCount;
-                    cartBadge.classList.remove('d-none');
-                }
+                location.reload(); // Refresh to update cart badge in header
             } else if(data.status === 'login_required') {
                 window.location.href = "{{ route('login') }}";
             } else {
@@ -163,43 +253,6 @@
             }
         });
     }
-
-    function toggleFavorite(maSP, btn) {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch(`{{ route('favorites.toggle') }}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-            body: JSON.stringify({ maSP: maSP })
-        })
-        .then(res => {
-            if (res.status === 401) {
-                window.location.href = "{{ route('login') }}";
-                return;
-            }
-            return res.json();
-        })
-        .then(data => {
-            const icon = btn.querySelector('i');
-            if (data.status === 'added') {
-                icon.className = 'fa-solid fa-heart text-danger';
-            } else if (data.status === 'removed') {
-                icon.className = 'fa-regular fa-heart';
-            }
-
-            const badge = document.getElementById('fav-count-badge');
-            if (badge) {
-                badge.innerText = data.favCount;
-                if (data.favCount > 0) badge.classList.remove('d-none');
-                else badge.classList.add('d-none');
-            }
-        });
-    }
 </script>
 @endpush
 @endsection
-
-
-
-
-
-

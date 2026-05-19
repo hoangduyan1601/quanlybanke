@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class ChiTietDonHang extends Model
 {
     protected $table = 'chitietdonhang';
-    public $incrementing = false;
     public $timestamps = false;
 
     protected $fillable = [
         'MaDH',
         'MaSP',
+        'MaVariant',
         'SoLuong',
         'DonGia',
         'ThanhTien',
@@ -26,6 +26,11 @@ class ChiTietDonHang extends Model
     public function sanPham()
     {
         return $this->belongsTo(SanPham::class, 'MaSP', 'MaSP');
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(SanPhamVariant::class, 'MaVariant', 'MaVariant');
     }
 }
 

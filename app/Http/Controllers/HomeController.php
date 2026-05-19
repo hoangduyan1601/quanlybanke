@@ -62,12 +62,24 @@ class HomeController extends Controller
             ->whereIn('TrangThaiDH', ['DaGiao', 'DaHuy'])
             ->orderBy('NgayDat', 'desc')
             ->get();
-
-        $unreadCount = ThongBao::where('MaKH', $customer->MaKH)
-            ->where('TrangThaiDoc', false)
-            ->count();
             
-        return view('home.profile', compact('customer', 'ordersInProgress', 'ordersCompleted', 'unreadCount'));
+        return view('home.profile', compact('customer', 'ordersInProgress', 'ordersCompleted'));
+    }
+
+    public function notifications()
+    {
+        $user = Auth::user();
+        $customer = KhachHang::where('MaTK', $user->MaTK)->first();
+
+        if (!$customer) {
+            return redirect()->route('customer.profile')->with('error', 'Cần cập nhật thông tin trước.');
+        }
+
+        $notifications = ThongBao::where('MaKH', $customer->MaKH)
+            ->orderBy('NgayGui', 'desc')
+            ->paginate(10);
+
+        return view('home.notifications', compact('notifications'));
     }
 
     public function updateProfile(Request $request)
@@ -117,7 +129,7 @@ class HomeController extends Controller
 
     public function orderDetail($id)
     {
-        $order = DonHang::with(['khachHang', 'chiTietDonHangs.sanPham'])->findOrFail($id);
+        $order = DonHang::with(['khachHang', 'chiTietDonHangs.sanPham', 'chiTietDonHangs.variant', 'statusLogs.user'])->findOrFail($id);
         
         // Kiểm tra quyền (chỉ chủ đơn hàng hoặc admin mới được xem)
         /** @var TaiKhoan $user */
@@ -180,6 +192,52 @@ class HomeController extends Controller
             DB::rollBack();
             return back()->with('error', 'Lỗi khi hủy đơn hàng: ' . $e->getMessage());
         }
+    }
+
+    public function requestReturn(Request $request, $id)
+    {
+        $request->validate([
+            'LyDo' => 'required|string|max:1000',
+            'HinhAnhMinhChung' => 'nullable|image|max:2048',
+        ]);
+
+        $order = DonHang::findOrFail($id);
+        $user = Auth::user();
+        $khachHang = KhachHang::where('MaTK', $user->MaTK)->first();
+
+        if (!$khachHang || $order->MaKH !== $khachHang->MaKH) {
+            return back()->with('error', 'Yêu cầu không hợp lệ.');
+        }
+
+        if ($order->TrangThaiDH !== 'DaGiao') {
+            return back()->with('error', 'Chỉ có thể yêu cầu trả hàng cho đơn hàng đã giao thành công.');
+        }
+
+        // Kiểm tra xem đã có yêu cầu trả hàng cho đơn này chưa
+        $exists = \App\Models\DonTraHang::where('MaDH', $id)->exists();
+        if ($exists) {
+            return back()->with('error', 'Yêu cầu trả hàng cho đơn này đã tồn tại.');
+        }
+
+        $hinhAnh = null;
+        if ($request->hasFile('HinhAnhMinhChung')) {
+            $file = $request->file('HinhAnhMinhChung');
+            $hinhAnh = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('assets/images/returns'), $hinhAnh);
+        }
+
+        \App\Models\DonTraHang::create([
+            'MaDH' => $id,
+            'LyDo' => $request->LyDo,
+            'HinhAnhMinhChung' => $hinhAnh,
+            'TrangThaiTra' => 'ChoDuyet',
+            'SoTienHoan' => $order->TongThanhToan
+        ]);
+
+        // Cập nhật trạng thái vận chuyển để biết đang có yêu cầu trả
+        $order->update(['TrangThaiVanChuyen' => 'TraHang']);
+
+        return back()->with('success', 'Đã gửi yêu cầu trả hàng. Vui lòng chờ quản trị viên duyệt.');
     }
 }
 

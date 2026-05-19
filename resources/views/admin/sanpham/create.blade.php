@@ -37,7 +37,7 @@
                 
                 <div class="mb-3">
                     <label class="admin-form-label">Tên sản phẩm <span class="text-danger">*</span></label>
-                    <input type="text" name="TenSP" class="form-control form-control-luxury" value="{{ old('TenSP') }}" placeholder="Nhập tên sách..." required>
+                    <input type="text" name="TenSP" class="form-control form-control-luxury" value="{{ old('TenSP') }}" placeholder="Nhập tên mẫu kệ..." required>
                 </div>
 
                 <div class="mb-3">
@@ -50,29 +50,29 @@
                 <h5 class="fw-bold mb-4"><i class="fas fa-list me-2 text-primary"></i>Thông số kỹ thuật</h5>
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="admin-form-label">Số trang</label>
-                        <input type="number" name="ChatLieu" class="form-control form-control-luxury" value="{{ old('ChatLieu', 200) }}" placeholder="Ví dụ: 350">
+                        <label class="admin-form-label">Số tầng</label>
+                        <input type="number" name="SoTang" class="form-control form-control-luxury" value="{{ old('SoTang', 5) }}" placeholder="Ví dụ: 5">
                     </div>
                     <div class="col-md-4">
                         <label class="admin-form-label">Kích thước</label>
-                        <input type="text" name="KichThuoc" class="form-control form-control-luxury" value="{{ old('KichThuoc', '14.5 x 20.5 cm') }}" placeholder="Ví dụ: 14.5 x 20.5 cm">
+                        <input type="text" name="KichThuoc" class="form-control form-control-luxury" value="{{ old('KichThuoc', '40 x 60 x 150 cm') }}" placeholder="Ví dụ: 40 x 60 x 150 cm">
                     </div>
                     <div class="col-md-4">
-                        <label class="admin-form-label">Loại bìa</label>
-                        <select name="TaiTrong" class="form-select form-control-luxury">
-                            <option value="">-- Chọn loại bìa --</option>
-                            <option value="Bìa mềm" {{ old('TaiTrong', 'Bìa mềm') == 'Bìa mềm' ? 'selected' : '' }}>Bìa mềm</option>
-                            <option value="Bìa cứng" {{ old('TaiTrong') == 'Bìa cứng' ? 'selected' : '' }}>Bìa cứng</option>
-                            <option value="Bìa da" {{ old('TaiTrong') == 'Bìa da' ? 'selected' : '' }}>Bìa da</option>
+                        <label class="admin-form-label">Chất liệu</label>
+                        <select name="ChatLieu" class="form-select form-control-luxury">
+                            <option value="">-- Chọn chất liệu --</option>
+                            <option value="Thép sơn tĩnh điện" {{ old('ChatLieu', 'Thép sơn tĩnh điện') == 'Thép sơn tĩnh điện' ? 'selected' : '' }}>Thép sơn tĩnh điện</option>
+                            <option value="Inox 304" {{ old('ChatLieu') == 'Inox 304' ? 'selected' : '' }}>Inox 304</option>
+                            <option value="Gỗ công nghiệp" {{ old('ChatLieu') == 'Gỗ công nghiệp' ? 'selected' : '' }}>Gỗ công nghiệp</option>
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="admin-form-label">Trọng lượng (gr)</label>
-                        <input type="number" name="SoTang" class="form-control form-control-luxury" value="{{ old('SoTang', 300) }}" placeholder="Ví dụ: 500">
+                        <label class="admin-form-label">Tải trọng (kg/tầng)</label>
+                        <input type="text" name="TaiTrong" class="form-control form-control-luxury" value="{{ old('TaiTrong', '50kg') }}" placeholder="Ví dụ: 50kg">
                     </div>
                     <div class="col-md-6">
-                        <label class="admin-form-label">Năm xuất bản</label>
-                        <input type="number" name="MauSac" class="form-control form-control-luxury" value="{{ old('MauSac', date('Y')) }}" placeholder="Ví dụ: 2024">
+                        <label class="admin-form-label">Màu sắc</label>
+                        <input type="text" name="MauSac" class="form-control form-control-luxury" value="{{ old('MauSac', 'Ghi xám') }}" placeholder="Ví dụ: Ghi xám">
                     </div>
                 </div>
             </div>

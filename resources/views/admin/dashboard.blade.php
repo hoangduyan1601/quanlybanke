@@ -100,8 +100,8 @@
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
                 <div class="flex-grow-1">
-                    <h6 class="mb-1 fw-bold">Sản phẩm hết hàng</h6>
-                    <p class="text-muted small mb-0">{{ $hetHang }} sản phẩm cần nhập thêm ngay.</p>
+                    <h6 class="mb-1 fw-bold">Cảnh báo tồn kho</h6>
+                    <p class="text-muted small mb-0">{{ $hetHang }} sản phẩm sắp hoặc đã hết hàng.</p>
                 </div>
                 <a href="{{ route('admin.sanpham.index') }}" class="btn btn-sm btn-light rounded-pill"><i class="fas fa-arrow-right"></i></a>
             </div>

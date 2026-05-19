@@ -19,9 +19,9 @@ class SanPhamController extends Controller
         if ($categoryId > 0) {
             $query->where('MaDM', $categoryId);
             $category = DanhMuc::find($categoryId);
-            $pageTitle = $category ? "Danh mục: " . $category->TenDM : "Sách theo danh mục";
+            $pageTitle = $category ? "Danh mục: " . $category->TenDM : "Kệ gia dụng theo danh mục";
         } else {
-            $pageTitle = "Tất cả sách";
+            $pageTitle = "Tất cả sản phẩm";
         }
 
         // Logic sắp xếp
@@ -88,8 +88,13 @@ class SanPhamController extends Controller
 
     public function detail(Request $request, $id)
     {
-        $product = SanPham::with(['danhmuc', 'NhaSanXuat', 'ThuongHieus', 'hinhanhsanpham'])->findOrFail($id);
+        $product = SanPham::with(['danhmuc', 'NhaSanXuat', 'ThuongHieus', 'hinhanhsanpham', 'variants'])->findOrFail($id);
         
+        $reviews = \App\Models\DanhGia::with('khachhang')
+            ->where('MaSP', $id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(5);
+
         $relatedProducts = SanPham::where('MaDM', $product->MaDM)
             ->where('MaSP', '!=', $id)
             ->take(4)
@@ -97,7 +102,82 @@ class SanPhamController extends Controller
 
         $categories = DanhMuc::all();
 
-        return view('sanpham.detail', compact('product', 'relatedProducts', 'categories'));
+        $canReview = false;
+        if (auth()->check()) {
+            $user = auth()->user();
+            $khachHang = \App\Models\KhachHang::where('MaTK', $user->MaTK)->first();
+            if ($khachHang) {
+                // Kiểm tra đã mua chưa
+                $hasPurchased = \App\Models\ChiTietDonHang::whereHas('donHang', function ($query) use ($khachHang) {
+                    $query->where('MaKH', $khachHang->MaKH)->where('TrangThaiDH', 'DaGiao');
+                })->where('MaSP', $id)->exists();
+
+                // Kiểm tra đã đánh giá chưa
+                $alreadyReviewed = \App\Models\DanhGia::where('MaSP', $id)
+                    ->where('MaKH', $khachHang->MaKH)
+                    ->exists();
+
+                $canReview = $hasPurchased && !$alreadyReviewed;
+            }
+        }
+
+        return view('sanpham.detail', compact('product', 'reviews', 'relatedProducts', 'categories', 'canReview'));
+    }
+
+    public function storeReview(Request $request, $id)
+    {
+        $request->validate([
+            'SoSao' => 'required|integer|min:1|max:5',
+            'NoiDung' => 'required|string|max:1000',
+            'HinhAnhDG' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if (!auth()->check()) {
+            return back()->with('error', 'Bạn cần đăng nhập để đánh giá.');
+        }
+
+        $user = auth()->user();
+        $khachHang = \App\Models\KhachHang::where('MaTK', $user->MaTK)->first();
+
+        if (!$khachHang) {
+            return back()->with('error', 'Thông tin khách hàng không hợp lệ.');
+        }
+
+        // Kiểm tra xem khách đã mua sản phẩm này chưa
+        $hasPurchased = \App\Models\ChiTietDonHang::whereHas('donHang', function ($query) use ($khachHang) {
+            $query->where('MaKH', $khachHang->MaKH)->where('TrangThaiDH', 'DaGiao');
+        })->where('MaSP', $id)->exists();
+
+        if (!$hasPurchased) {
+            return back()->with('error', 'Bạn chỉ có thể đánh giá sản phẩm đã mua và nhận hàng thành công.');
+        }
+
+        // Kiểm tra xem khách đã đánh giá chưa
+        $alreadyReviewed = \App\Models\DanhGia::where('MaSP', $id)
+            ->where('MaKH', $khachHang->MaKH)
+            ->exists();
+
+        if ($alreadyReviewed) {
+            return back()->with('error', 'Bạn đã đánh giá sản phẩm này rồi.');
+        }
+
+        $imagePath = null;
+        if ($request->hasFile('HinhAnhDG')) {
+            $image = $request->file('HinhAnhDG');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('assets/images/reviews'), $imageName);
+            $imagePath = 'assets/images/reviews/' . $imageName;
+        }
+
+        \App\Models\DanhGia::create([
+            'MaSP' => $id,
+            'MaKH' => $khachHang->MaKH,
+            'SoSao' => $request->SoSao,
+            'NoiDung' => $request->NoiDung,
+            'HinhAnhDG' => $imagePath,
+        ]);
+
+        return back()->with('success', 'Cảm ơn bạn đã đánh giá sản phẩm!');
     }
 }
 

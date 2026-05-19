@@ -106,11 +106,11 @@ class LargeScaleProductSeeder extends Seeder
             // Thêm chi tiết
             ChiTietSanPham::create([
                 'MaSP' => $product->MaSP,
-                'SoTrang' => rand(200, 600),
+                'ChatLieu' => 'Giấy cao cấp',
                 'KichThuoc' => '16 x 24 cm',
-                'LoaiBia' => rand(0, 1) ? 'Bìa cứng' : 'Bìa mềm',
-                'TrongLuong' => rand(400, 800),
-                'NamXuatBan' => rand(2022, 2026),
+                'TaiTrong' => rand(0, 1) ? 'Bìa cứng' : 'Bìa mềm',
+                'SoTang' => rand(200, 600) . ' trang',
+                'MauSac' => (string)rand(2022, 2026),
                 'NoiDungChiTiet' => 'Đây là nội dung chi tiết của cuốn sách ' . $bookName . '. Tác phẩm mang lại cái nhìn sâu sắc và những giá trị tri thức vô giá cho độc giả.'
             ]);
 

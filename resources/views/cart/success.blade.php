@@ -10,7 +10,7 @@
                         <i class="fa-solid fa-clock text-warning fs-1"></i>
                     </div>
                     <h1 class="font-luxury display-4 mb-3" id="success-title">Đang Chờ Thanh Toán...</h1>
-                    <p class="text-muted lead" id="success-msg">Mọi thứ đã sẵn sàng. Vui lòng hoàn tất thanh toán để chúng tôi bắt đầu giao tác phẩm đến bạn.</p>
+                    <p class="text-muted lead" id="success-msg">Mọi thứ đã sẵn sàng. Vui lòng hoàn tất thanh toán để chúng tôi bắt đầu giao sản phẩm đến bạn.</p>
                 @else
                     <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle mb-4" style="width: 100px; height: 100px;" id="status-icon-box">
                         <i class="fa-solid fa-check text-success fs-1"></i>
@@ -49,11 +49,19 @@
                 <div class="mb-4">
                     <span class="text-muted small fw-bold text-uppercase ls-1 d-block mb-3">Chi tiết tác phẩm:</span>
                     @foreach($order->chiTietDonHangs as $ct)
+                    @php
+                        $variant = $ct->variant;
+                        $image = ($variant && $variant->HinhAnh) ? $variant->HinhAnh : $ct->sanPham->HinhAnh;
+                        $imgUrl = $image ? (Str::startsWith($image, 'http') ? $image : asset('assets/images/products/' . $image)) : 'https://via.placeholder.com/50x70';
+                    @endphp
                     <div class="d-flex align-items-center mb-3">
-                        <img src="{{ $ct->sanPham->HinhAnh ? (Str::startsWith($ct->sanPham->HinhAnh, 'http') ? $ct->sanPham->HinhAnh : asset('assets/images/products/' . $ct->sanPham->HinhAnh)) : 'https://via.placeholder.com/50x70' }}" 
+                        <img src="{{ $imgUrl }}" 
                              class="rounded-2 border" style="width: 40px; height: 55px; object-fit: contain; background: #f8f9fa;">
                         <div class="ms-3 flex-grow-1">
                             <div class="small fw-bold text-dark text-truncate" style="max-width: 250px;">{{ $ct->sanPham->TenSP }}</div>
+                            @if($ct->variant)
+                                <div class="extra-small text-muted">{{ $ct->variant->MauSac }}{{ $ct->variant->KichThuoc ? ' - ' . $ct->variant->KichThuoc : '' }}</div>
+                            @endif
                             <small class="text-muted">{{ $ct->SoLuong }} x {{ number_format($ct->DonGia, 0, ',', '.') }}₫</small>
                         </div>
                         <div class="small fw-bold text-dark">{{ number_format($ct->ThanhTien, 0, ',', '.') }}₫</div>

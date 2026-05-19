@@ -7,7 +7,7 @@
     <div class="text-center mb-5">
         <span class="section-tag">Curated for you</span>
         <h1 class="font-luxury display-4">Bộ Sưu Tập Yêu Thích</h1>
-        <p class="text-muted">Nơi lưu giữ những tác phẩm chạm đến tâm hồn bạn.</p>
+        <p class="text-muted">Nơi lưu giữ những sản phẩm bạn yêu thích nhất.</p>
     </div>
 
     @if($favorites->count() > 0)

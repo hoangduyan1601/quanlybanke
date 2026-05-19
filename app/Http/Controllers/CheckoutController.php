@@ -35,6 +35,8 @@ class CheckoutController extends Controller
             ->whereNotNull('MaGiamGia') // Có mã giảm giá để người dùng áp dụng
             ->get();
 
+        $addresses = \App\Models\DiaChiKhachHang::where('MaKH', $khachHang->MaKH)->get();
+
         session()->forget('cart_promotion');
 
         $gioHang = GioHang::where('MaKH', $khachHang->MaKH)->first();
@@ -42,24 +44,49 @@ class CheckoutController extends Controller
         $cart = [];
         $totalPrice = 0;
         if ($gioHang) {
-            $query = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with('sanPham');
+            $query = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with(['sanPham', 'variant']);
             if (!empty($selectedIds)) {
-                $query->whereIn('MaSP', $selectedIds);
+                $query->whereIn('id', $selectedIds);
             }
             $items = $query->get();
             
             foreach ($items as $item) {
                 if ($item->sanPham) {
-                    $cart[$item->MaSP] = [
-                        'id'    => $item->MaSP,
+                    $variant = $item->variant;
+                    $info = [];
+                    if ($variant) {
+                        if ($variant->MauSac) $info[] = $variant->MauSac;
+                        if ($variant->KichThuoc) $info[] = $variant->KichThuoc;
+                        if ($variant->SoTang) $info[] = $variant->SoTang . ' tầng';
+                    }
+                    $variant_info = !empty($info) ? implode(' - ', $info) : null;
+
+                    // Ưu tiên giá của biến thể nếu có
+                    $price = $item->sanPham->gia_hien_tai;
+                    $original_price = $item->sanPham->DonGia;
+                    if ($variant) {
+                        if ($variant->GiaKhuyenMai && $variant->GiaKhuyenMai > 0) {
+                            $price = $variant->GiaKhuyenMai;
+                            $original_price = $variant->GiaNiemYet;
+                        } elseif ($variant->GiaNiemYet && $variant->GiaNiemYet > 0) {
+                            $price = $variant->GiaNiemYet;
+                            $original_price = $variant->GiaNiemYet;
+                        }
+                    }
+
+                    $cart[$item->id] = [
+                        'id'    => $item->id,
+                        'product_id' => $item->MaSP,
+                        'variant_id' => $item->MaVariant,
                         'name'  => $item->sanPham->TenSP,
-                        'price' => $item->sanPham->gia_hien_tai,
-                        'original_price' => $item->sanPham->DonGia,
+                        'variant_info' => $variant_info,
+                        'price' => $price,
+                        'original_price' => $original_price,
                         'qty'   => $item->SoLuong,
-                        'image' => $item->sanPham->HinhAnh,
+                        'image' => $variant && $variant->HinhAnh ? $variant->HinhAnh : $item->sanPham->HinhAnh,
                         'ma_dm' => $item->sanPham->MaDM
                     ];
-                    $totalPrice += $item->sanPham->gia_hien_tai * $item->SoLuong;
+                    $totalPrice += $price * $item->SoLuong;
                 }
             }
         }
@@ -68,7 +95,7 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index');
         }
 
-        return view('cart.checkout', compact('cart', 'totalPrice', 'promotions', 'khachHang', 'selectedIds'));
+        return view('cart.checkout', compact('cart', 'totalPrice', 'promotions', 'khachHang', 'selectedIds', 'addresses'));
     }
 
     public function process(Request $request)
@@ -101,9 +128,9 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index');
         }
 
-        $query = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with('sanPham');
+        $query = ChiTietGioHang::where('MaGH', $gioHang->MaGH)->with(['sanPham', 'variant']);
         if (!empty($selectedIds)) {
-            $query->whereIn('MaSP', $selectedIds);
+            $query->whereIn('id', $selectedIds);
         }
         $items = $query->get();
 
@@ -151,19 +178,28 @@ class CheckoutController extends Controller
                     ChiTietDonHang::create([
                         'MaDH' => $donHang->MaDH,
                         'MaSP' => $item->MaSP,
+                        'MaVariant' => $item->MaVariant,
                         'SoLuong' => $item->SoLuong,
                         'DonGia' => $item->sanPham->gia_hien_tai,
                         'ThanhTien' => $thanhTien
                     ]);
 
+                    // Giảm tồn kho ở cả sản phẩm và biến thể
                     $item->sanPham->decrement('SoLuong', $item->SoLuong);
                     $item->sanPham->increment('SoLuongDaBan', $item->SoLuong);
+                    
+                    if ($item->MaVariant) {
+                        $variant = \App\Models\SanPhamVariant::find($item->MaVariant);
+                        if ($variant) {
+                            $variant->decrement('SoLuongTon', $item->SoLuong);
+                        }
+                    }
                 }
             }
 
             // Chỉ xóa các sản phẩm đã thanh toán khỏi giỏ hàng
             if (!empty($selectedIds)) {
-                ChiTietGioHang::where('MaGH', $gioHang->MaGH)->whereIn('MaSP', $selectedIds)->delete();
+                ChiTietGioHang::where('MaGH', $gioHang->MaGH)->whereIn('id', $selectedIds)->delete();
             } else {
                 ChiTietGioHang::where('MaGH', $gioHang->MaGH)->delete();
             }

@@ -172,8 +172,16 @@
                                 <span class="fw-bold text-dark">#{{ str_pad($r->MaDH, 5, '0', STR_PAD_LEFT) }}</span>
                             </td>
                             <td>
-                                <div class="fw-bold text-dark">{{ $r->khachHang->HoTen ?? 'Khách Vãng Lai' }}</div>
-                                <small class="text-muted">{{ $r->khachHang->SDT }}</small>
+                                <div class="fw-bold text-dark">
+                                    @if($r->khachHang)
+                                        <a href="{{ route('admin.khachhang.index', ['search' => $r->khachHang->SDT]) }}" class="text-decoration-none text-dark hover-primary">
+                                            {{ $r->khachHang->HoTen }}
+                                        </a>
+                                    @else
+                                        Khách Vãng Lai
+                                    @endif
+                                </div>
+                                <small class="text-muted">{{ $r->khachHang->SDT ?? '' }}</small>
                             </td>
                             <td class="text-center">
                                 @php

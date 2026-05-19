@@ -107,6 +107,11 @@
                             </td>
                             <td>
                                 <div class="small fw-medium text-dark">{{ date('d/m/y', strtotime($item->NgayBatDau)) }} - {{ date('d/m/y', strtotime($item->NgayKetThuc)) }}</div>
+                                @if(strtotime($item->NgayKetThuc) < time())
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 mt-1" style="font-size: 0.65rem;">Đã hết hạn</span>
+                                @else
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 mt-1" style="font-size: 0.65rem;">Đang chạy</span>
+                                @endif
                             </td>
                             <td class="pe-4 text-end">
                                 <button class="btn btn-sm btn-light rounded-pill px-3 me-1" onclick="openModalSua('{{ $item->MaKM }}', '{{ addslashes($item->TenKM) }}', '{{ $item->PhanTramGiam }}', '{{ $item->NgayBatDau ? date('Y-m-d', strtotime($item->NgayBatDau)) : '' }}', '{{ $item->NgayKetThuc ? date('Y-m-d', strtotime($item->NgayKetThuc)) : '' }}', '{{ $item->LoaiKM }}', '{{ $item->MaDM }}', '{{ $item->DieuKienToiThieu }}', '{{ $item->MaGiamGia }}')">

@@ -161,6 +161,12 @@
     <a href="{{ route('admin.chat.index') }}" class="sidebar-nav-link {{ request()->routeIs('admin.chat.*') ? 'active' : '' }}">
         <i class="fas fa-comments"></i>
         <span>Hỗ trợ trực tuyến</span>
+        @php
+            $unreadChat = \App\Models\ChatMessage::where('sender', 'user')->where('is_read', 0)->count();
+        @endphp
+        @if($unreadChat > 0)
+            <span class="badge bg-danger rounded-pill ms-auto">{{ $unreadChat }}</span>
+        @endif
     </a>
     <a href="{{ route('admin.thongbao.index') }}" class="sidebar-nav-link {{ request()->routeIs('admin.thongbao.*') ? 'active' : '' }}">
         <i class="fas fa-bell"></i>

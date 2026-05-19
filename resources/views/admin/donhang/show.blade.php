@@ -64,7 +64,16 @@
     <div class="row mb-5">
         <div class="col-6">
             <h6 class="text-uppercase fw-bold text-muted small mb-3" style="letter-spacing: 1px;">Khách hàng / Bill To:</h6>
-            <h5 class="fw-bold mb-1">{{ $order->khachHang->HoTen ?? 'Khách vãng lai' }}</h5>
+            <h5 class="fw-bold mb-1">
+                @if($order->khachHang)
+                    <a href="{{ route('admin.khachhang.index', ['search' => $order->khachHang->SDT]) }}" class="text-decoration-none text-dark no-print">
+                        {{ $order->khachHang->HoTen }}
+                    </a>
+                    <span class="d-none d-print-inline">{{ $order->khachHang->HoTen }}</span>
+                @else
+                    Khách vãng lai
+                @endif
+            </h5>
             <p class="mb-1"><i class="fas fa-phone me-2 text-muted small"></i>{{ $order->khachHang->SDT ?? 'N/A' }}</p>
             <p class="mb-1"><i class="fas fa-envelope me-2 text-muted small"></i>{{ $order->khachHang->Email ?? 'N/A' }}</p>
         </div>
@@ -104,7 +113,19 @@
                         <td class="text-center">{{ $index + 1 }}</td>
                         <td class="text-center fw-bold">#{{ $r->MaSP }}</td>
                         <td>
-                            <div class="fw-bold">{{ $r->sanPham->TenSP ?? 'Sản phẩm đã xóa' }}</div>
+                            <div class="fw-bold">
+                                @if($r->sanPham)
+                                    <a href="{{ route('admin.sanpham.edit', $r->MaSP) }}" class="text-decoration-none text-dark no-print">
+                                        {{ $r->sanPham->TenSP }}
+                                    </a>
+                                    <span class="d-none d-print-inline">{{ $r->sanPham->TenSP }}</span>
+                                @else
+                                    Sản phẩm đã xóa
+                                @endif
+                            </div>
+                            @if($r->variant)
+                                <div class="extra-small text-muted">{{ $r->variant->MauSac }} {{ $r->variant->KichThuoc ? ' - ' . $r->variant->KichThuoc : '' }}</div>
+                            @endif
                             @if($r->sanPham && $r->sanPham->danhmuc)
                                 <small class="text-muted italic">{{ $r->sanPham->danhmuc->TenDM }}</small>
                             @endif
@@ -217,6 +238,43 @@
             </select>
             <button type="submit" class="btn btn-primary rounded-pill px-4">Cập nhật</button>
         </form>
+    </div>
+</div>
+
+<!-- Lịch sử trạng thái (Audit Trail) - Hidden when printing -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mt-4 no-print">
+    <div class="card-header bg-white py-3 border-0">
+        <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-history me-2 text-primary"></i>Lịch sử trạng thái đơn hàng</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Thời gian</th>
+                    <th>Người thực hiện</th>
+                    <th>Hành động</th>
+                    <th class="pe-4">Ghi chú</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($order->statusLogs as $log)
+                    <tr>
+                        <td class="ps-4 text-muted">{{ date('d/m/Y H:i', strtotime($log->created_at)) }}</td>
+                        <td>
+                            <span class="badge bg-light text-dark border rounded-pill">
+                                <i class="fas fa-user-circle me-1"></i> {{ $log->user->TenDangNhap ?? 'Hệ thống' }}
+                            </span>
+                        </td>
+                        <td><span class="fw-bold text-primary">{{ $log->HanhDong }}</span></td>
+                        <td class="pe-4 italic">{{ $log->GhiChu }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">Chưa có lịch sử thay đổi trạng thái cho đơn hàng này.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
 

@@ -26,7 +26,7 @@
                             <i class="fa-solid fa-user-tie fs-1"></i>
                         </div>
                         <h4 class="fw-bold text-dark mb-1">{{ $customer->HoTen }}</h4>
-                        <p class="text-muted small text-uppercase ls-1">Thành viên Luxury Furniturestore</p>
+                        <p class="text-muted small text-uppercase ls-1">Khách hàng thân thiết</p>
                     </div>
 
                     <div class="profile-info-list d-flex flex-column gap-4">
@@ -47,13 +47,16 @@
                         <div class="d-flex align-items-start gap-3">
                             <div class="info-icon text-warning mt-1"><i class="fa-solid fa-location-dot"></i></div>
                             <div>
-                                <small class="text-muted d-block text-uppercase fw-bold ls-1" style="font-size: 0.6rem;">Địa chỉ mặc định</small>
-                                <span class="fw-bold text-dark">{{ $customer->DiaChi }}</span>
+                                <small class="text-muted d-block text-uppercase fw-bold ls-1" style="font-size: 0.6rem;">Địa chỉ chính</small>
+                                <span class="fw-bold text-dark text-truncate d-block" style="max-width: 200px;" title="{{ $customer->DiaChi }}">{{ $customer->DiaChi }}</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-5 border-top pt-4">
+                        <a href="{{ route('addresses.index') }}" class="btn btn-dark w-100 rounded-pill py-3 fw-bold ls-1 small mb-3">
+                            <i class="fa-solid fa-map-location-dot me-2"></i> QUẢN LÝ SỔ ĐỊA CHỈ
+                        </a>
                         <button class="btn btn-outline-dark w-100 rounded-pill py-3 fw-bold ls-1 small" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                             <i class="fa-solid fa-user-gear me-2"></i> CHỈNH SỬA HỒ SƠ
                         </button>
@@ -81,12 +84,6 @@
                             <i class="fa-solid fa-clock-rotate-left me-2"></i> LỊCH SỬ ĐÃ MUA
                         </button>
                     </li>
-                    <li class="nav-item">
-                        <button class="nav-link rounded-pill px-4 py-2 fw-bold small ls-1" id="notis-tab" data-bs-toggle="pill" data-bs-target="#tab-notis" type="button">
-                            <i class="fa-solid fa-bell me-2"></i> THÔNG BÁO 
-                            @if($unreadCount > 0) <span class="badge bg-danger ms-2" style="font-size: 0.6rem;">{{ $unreadCount }}</span> @endif
-                        </button>
-                    </li>
                 </ul>
             </div>
 
@@ -96,7 +93,7 @@
                     <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden">
                         <div class="card-header bg-white p-4 border-0">
                             <h5 class="fw-bold mb-0 text-dark">Hành trình đơn hàng</h5>
-                            <p class="text-muted small mb-0">Danh sách các tác phẩm đang trong quá trình vận chuyển tới bạn.</p>
+                            <p class="text-muted small mb-0">Danh sách các sản phẩm đang trong quá trình vận chuyển tới bạn.</p>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
@@ -170,8 +167,8 @@
                 <div class="tab-pane fade" id="tab-history-orders">
                     <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden">
                         <div class="card-header bg-white p-4 border-0">
-                            <h5 class="fw-bold mb-0 text-dark">Thư viện đã sở hữu</h5>
-                            <p class="text-muted small mb-0">Những tác phẩm đã tìm thấy chủ nhân hoặc các giao dịch đã đóng.</p>
+                            <h5 class="fw-bold mb-0 text-dark">Lịch sử đơn hàng</h5>
+                            <p class="text-muted small mb-0">Những sản phẩm đã giao thành công hoặc các giao dịch đã đóng.</p>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
@@ -189,19 +186,7 @@
                                     <tr>
                                         <td class="ps-4 py-4 fw-bold">#{{ $order->MaDH }}</td>
                                         <td class="small text-muted">{{ date('d/m/Y H:i', strtotime($order->NgayDat)) }}</td>
-                                        <td class="fw-bold text-dark">
-                                            @php
-                                                $soTienCanThu = max(0, $order->TongTien - ($order->SoTienDaThanhToan ?? 0));
-                                            @endphp
-                                            @if($soTienCanThu == 0)
-                                                <span class="text-success">0₫</span> 
-                                                <small class="text-muted" style="font-size: 0.6rem;">
-                                                    ({{ $order->PhuongThucThanhToan === 'VNPay' ? 'Đã thanh toán VNPay' : 'Đã CK' }})
-                                                </small>
-                                            @else
-                                                {{ number_format($soTienCanThu, 0, ',', '.') }}₫
-                                            @endif
-                                        </td>
+                                        <td class="fw-bold text-dark">{{ number_format($order->TongThanhToan, 0, ',', '.') }}₫</td>
                                         <td>
                                             @php
                                                 $s = match($order->TrangThaiDH) {
@@ -213,13 +198,18 @@
                                             <span class="badge px-3 py-2 rounded-pill" style="background: {{ $s[0] }}; color: {{ $s[1] }}; font-size: 0.65rem;">{{ $s[2] }}</span>
                                         </td>
                                         <td class="text-center">
-                                            <button onclick="viewOrderDetail({{ $order->MaDH }})" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1 fw-bold extra-small ls-1">XEM LẠI</button>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <button onclick="viewOrderDetail({{ $order->MaDH }})" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1 fw-bold extra-small ls-1">CHI TIẾT</button>
+                                                @if($order->TrangThaiDH === 'DaGiao' && $order->TrangThaiVanChuyen !== 'TraHang')
+                                                    <button onclick="openReturnModal({{ $order->MaDH }}, {{ $order->TongThanhToan }})" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 fw-bold extra-small ls-1">TRẢ HÀNG</button>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="5" class="text-center py-100">
-                                            <p class="text-muted">Lịch sử của bạn đang được bắt đầu viết nên...</p>
+                                        <td colspan="5" class="text-center py-5">
+                                            <p class="text-muted">Bạn chưa có đơn hàng hoàn thành nào.</p>
                                         </td>
                                     </tr>
                                     @endforelse
@@ -228,37 +218,48 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-                <!-- Tab: Thông báo -->
-                <div class="tab-pane fade" id="tab-notis">
-                    <div class="card border-0 rounded-4 shadow-sm bg-white overflow-hidden">
-                        <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">
-                            <h5 class="fw-bold mb-0 text-dark">Thông báo hệ thống</h5>
-                            @if($unreadCount > 0)
-                                <button onclick="markAllAsRead()" class="btn btn-link text-dark fw-bold text-decoration-none small ls-1">Đánh dấu tất cả đã đọc</button>
-                            @endif
-                        </div>
-                        <div class="list-group list-group-flush px-3 pb-3">
-                            @php $user_notifications = \App\Models\ThongBao::where('MaKH', $customer->MaKH)->orderBy('NgayGui', 'desc')->get(); @endphp
-                            @forelse($user_notifications as $tb)
-                                <div id="noti-{{ $tb->MaTB }}" class="list-group-item p-4 border-0 mb-2 rounded-4 {{ $tb->TrangThaiDoc ? 'bg-light opacity-75' : 'bg-white shadow-sm border-start border-4 border-dark' }}" 
-                                     style="cursor: pointer; transition: 0.3s;" onclick="markAsRead({{ $tb->MaTB }}, '{{ $tb->LienKet }}')">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <h6 class="fw-bold mb-0">{{ $tb->TieuDe }}</h6>
-                                        <small class="text-muted small">{{ date('d/m/Y', strtotime($tb->NgayGui)) }}</small>
-                                    </div>
-                                    <p class="mb-0 text-secondary small">{{ $tb->NoiDung }}</p>
-                                </div>
-                            @empty
-                                <div class="text-center py-100">
-                                    <i class="fa-solid fa-bell-slash fs-1 text-light mb-3"></i>
-                                    <p class="text-muted">Bạn không có thông báo nào.</p>
-                                </div>
-                            @endforelse
-                        </div>
+<!-- Modal Trả hàng -->
+<div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <form id="returnForm" action="" method="POST" enctype="multipart/form-data" class="no-barba">
+                @csrf
+                <div class="p-4 bg-warning text-dark">
+                    <h5 class="font-luxury fw-bold mb-0 text-uppercase ls-1">YÊU CẦU TRẢ HÀNG / HOÀN TIỀN</h5>
+                </div>
+                <div class="modal-body p-4 bg-white">
+                    <p class="small text-muted mb-4">Bạn đang yêu cầu hoàn tiền cho đơn hàng <strong id="returnOrderIdText"></strong>. Số tiền hoàn dự kiến: <strong id="returnAmountText" class="text-danger"></strong></p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">LÝ DO TRẢ HÀNG</label>
+                        <select name="LyDo" class="form-select rounded-pill px-4" required>
+                            <option value="">-- Chọn lý do --</option>
+                            <option value="Sản phẩm lỗi/hỏng hóc">Sản phẩm lỗi/hỏng hóc</option>
+                            <option value="Giao sai sản phẩm">Giao sai sản phẩm</option>
+                            <option value="Sản phẩm không đúng mô tả">Sản phẩm không đúng mô tả</option>
+                            <option value="Khác">Lý do khác</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">MÔ TẢ CHI TIẾT</label>
+                        <textarea name="NoiDung" class="form-control rounded-4 px-4 py-3" rows="3" placeholder="Mô tả thêm về tình trạng sản phẩm..." required></textarea>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold text-muted">HÌNH ẢNH MINH CHỨNG</label>
+                        <input type="file" name="HinhAnhMinhChung" class="form-control rounded-pill px-4" accept="image/*">
+                        <small class="text-muted extra-small d-block mt-1">Đính kèm ảnh sản phẩm lỗi để được duyệt nhanh hơn.</small>
                     </div>
                 </div>
-            </div>
+                <div class="modal-footer border-0 p-4 pt-0 bg-white">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold small ls-1 border" data-bs-dismiss="modal">HỦY BỎ</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold small ls-1 shadow-sm">GỬI YÊU CẦU</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -319,6 +320,11 @@
     
     .receipt-header { background: #1a1a1a; color: white; padding: 2.5rem; position: relative; overflow: hidden; }
     .order-item-img { width: 50px; height: 75px; object-fit: cover; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+    .status-timeline { position: relative; }
+    .timeline-dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 5px; z-index: 2; position: relative; background: var(--gold-primary); }
+    .timeline-line { position: absolute; left: 5px; top: 15px; bottom: -25px; width: 2px; background: #e9ecef; z-index: 1; }
+    .italic { font-style: italic; }
     
     /* Paid Stamp Effect */
     .paid-stamp {
@@ -371,6 +377,14 @@
         }).then(() => location.reload());
     }
 
+    function openReturnModal(id, amount) {
+        const modal = new bootstrap.Modal(document.getElementById('returnModal'));
+        document.getElementById('returnOrderIdText').innerText = '#' + id;
+        document.getElementById('returnAmountText').innerText = Number(amount).toLocaleString('vi-VN') + '₫';
+        document.getElementById('returnForm').action = `/orders/return/${id}`;
+        modal.show();
+    }
+
     function viewOrderDetail(id) {
         const modal = new bootstrap.Modal(document.getElementById('orderModal'));
         document.getElementById('orderContent').innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-dark" role="status"></div><p class="mt-3 small text-muted">Đang mở ngăn kho tri thức...</p></div>';
@@ -393,7 +407,7 @@
                             <div class="paid-stamp">
                                 <i class="fa-solid fa-certificate"></i>
                                 <span>ĐÃ THANH TOÁN</span>
-                                <small style="font-size: 0.5rem;">Luxury FurnitureSTORE</small>
+                                <small style="font-size: 0.5rem;">SHELF LUXURY</small>
                             </div>
                         ` : ''}
                         <div class="d-flex justify-content-between align-items-start">
@@ -452,19 +466,36 @@
                             <table class="table align-middle">
                                 <thead>
                                     <tr class="text-muted small border-bottom">
-                                        <th class="py-3">Tác phẩm</th>
+                                        <th class="py-3">Sản phẩm</th>
                                         <th class="text-center py-3">Số lượng</th>
                                         <th class="text-end py-3">Thành tiền</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${(order.chi_tiet_don_hangs).map(item => `
+                                    ${(order.chi_tiet_don_hangs).map(item => {
+                                        const sp = item.san_pham;
+                                        const variant = item.variant;
+                                        let imgUrl = 'https://via.placeholder.com/100x150';
+                                        if (sp) {
+                                            if (sp.HinhAnh && sp.HinhAnh.startsWith('http')) {
+                                                imgUrl = sp.HinhAnh;
+                                            } else if (sp.HinhAnh) {
+                                                imgUrl = '/assets/images/products/' + sp.HinhAnh;
+                                            } else if (sp.main_image_url) {
+                                                imgUrl = sp.main_image_url;
+                                            }
+                                        }
+                                        if (variant && variant.HinhAnh) {
+                                            imgUrl = variant.HinhAnh.startsWith('http') ? variant.HinhAnh : '/assets/images/products/' + variant.HinhAnh;
+                                        }
+                                        return `
                                         <tr>
                                             <td class="py-3">
                                                 <div class="d-flex align-items-center">
-                                                    <img src="/assets/images/products/${item.san_pham?.HinhAnh || ''}" class="order-item-img me-3" onerror="this.src='https://via.placeholder.com/100x150'">
+                                                    <img src="${imgUrl}" class="order-item-img me-3">
                                                     <div>
-                                                        <div class="fw-bold text-dark small">${item.san_pham?.TenSP || 'Sản phẩm'}</div>
+                                                        <div class="fw-bold text-dark small">${sp?.TenSP || 'Sản phẩm'}</div>
+                                                        ${variant ? `<div class="extra-small text-muted">${variant.MauSac}${variant.KichThuoc ? ' - ' + variant.KichThuoc : ''}</div>` : ''}
                                                         <div class="text-muted extra-small">Đơn giá: ${Number(item.DonGia).toLocaleString('vi-VN')}₫</div>
                                                     </div>
                                                 </div>
@@ -472,7 +503,7 @@
                                             <td class="text-center fw-bold text-dark">x${item.SoLuong}</td>
                                             <td class="text-end fw-bold text-dark">${Number(item.ThanhTien).toLocaleString('vi-VN')}₫</td>
                                         </tr>
-                                    `).join('')}
+                                    `}).join('')}
                                 </tbody>
                             </table>
                         </div>
@@ -506,6 +537,25 @@
                                     <span class="fw-bold text-uppercase ls-1">Cần trả thêm</span>
                                     <span class="fw-bold fs-3 text-warning">${Math.max(0, Number(order.TongTien) - Number(order.SoTienDaThanhToan || 0)).toLocaleString('vi-VN')}₫</span>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Status History Section -->
+                        <div class="mt-5 pt-4 border-top">
+                            <h6 class="fw-bold mb-4 text-dark small text-uppercase ls-1 px-2"><i class="fa-solid fa-timeline me-2 text-gold"></i>Hành trình xử lý đơn hàng</h6>
+                            <div class="status-timeline px-3">
+                                ${(order.status_logs || []).map((log, index) => `
+                                    <div class="d-flex gap-3 mb-4 position-relative">
+                                        ${index < (order.status_logs.length - 1) ? '<div class="timeline-line"></div>' : ''}
+                                        <div class="timeline-dot bg-gold"></div>
+                                        <div>
+                                            <div class="fw-bold text-dark small mb-1">${log.HanhDong}</div>
+                                            <div class="text-muted extra-small mb-1">${new Date(log.created_at).toLocaleString('vi-VN')}</div>
+                                            ${log.GhiChu ? `<div class="p-2 bg-light rounded-3 extra-small italic text-secondary border-start border-3 border-gold">${log.GhiChu}</div>` : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                ${order.status_logs && order.status_logs.length === 0 ? '<p class="text-muted small italic">Chưa có cập nhật mới cho đơn hàng này.</p>' : ''}
                             </div>
                         </div>
                     </div>

@@ -13,7 +13,7 @@ use App\Models\KhachHang;
 class GeminiService
 {
     protected ?string $apiKey;
-    protected string $apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    protected string $apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
     public function __construct()
     {
@@ -36,20 +36,18 @@ class GeminiService
         $userProfile = $this->getUserProfile($maKH);
 
         // 2. Chuẩn bị ngữ cảnh hệ thống
-        $systemInstruction = "Bạn là 'Luxury Assistant', trợ lý AI cao cấp của Luxury BookStore.
-        
-        PHONG CÁCH PHẢN HỒI:
-        - Ngắn gọn, súc tích, chuyên nghiệp.
-        - Xưng 'Tôi', gọi 'Quý khách'.
-        
-        NGUỒN DỮ LIỆU CÁ NHÂN HÓA:
-        Bạn có quyền truy cập vào sở thích và lịch sử của Quý khách dưới đây:
-        $userProfile
-        
-        NHIỆM VỤ:
-        - Sử dụng hồ sơ cá nhân hóa để đưa ra các gợi ý 'đúng gu' Quý khách một cách tinh tế.
-        - Luôn hiển thị thông tin khuyến mãi nếu sản phẩm đang được giảm giá.
-        - Nếu Quý khách chưa có lịch sử, hãy gợi ý những sản phẩm kệ bán chạy nhất hiện nay.";
+        $systemInstruction = [
+            'parts' => [
+                ['text' => "Bạn là 'Luxury Assistant', chuyên gia tư vấn kệ cao cấp của Luxury Shelf.
+                NHIỆM VỤ CHÍNH: Tư vấn giải pháp không gian và gợi ý sản phẩm phù hợp với nhu cầu Quý khách.
+                PHONG CÁCH PHẢN HỒI:
+                - Ngắn gọn, súc tích, đi thẳng vào vấn đề.
+                - Chuyên nghiệp, lịch sự (Xưng 'Tôi', gọi 'Quý khách').
+                - Khi tư vấn: Hãy hỏi những câu hỏi gợi mở (kích thước, không gian, mục đích dùng) để đưa ra gợi ý 'đúng gu'.
+                - Trình bày thông tin bằng bullet points để dễ đọc. 
+                - Tuyệt đối không viết quá dài dòng, lan man."]
+            ]
+        ];
 
         // 3. Tra cứu dữ liệu bổ sung (RAG)
         $contextData = $this->getRelevantData($message, $maKH);
@@ -62,36 +60,40 @@ class GeminiService
         }
 
         $prompt = "--- HỒ SƠ QUÝ KHÁCH ---\n" . $userProfile . "\n\n" .
-                  "--- NGỮ CẢNH HỆ THỐNG ---\n" . $contextData . "\n\n" .
-                  "--- LỊCH SỬ GẦN ĐÂY ---\n" . $historyContext . "\n\n" .
-                  "--- CÂU HỎI HIỆN TẠI ---\n" . $message;
-
-        // 5. Phân tích cảm xúc (Sentiment Analysis)
-        $isNegative = $this->checkSentiment($message);
-        if ($isNegative) {
-            $systemInstruction .= "\n\nLƯU Ý QUAN TRỌNG: Quý khách đang có dấu hiệu không hài lòng hoặc giận dữ. Hãy phản hồi với thái độ cực kỳ cầu thị, xin lỗi chân thành và đề nghị kết nối với nhân viên hỗ trợ ngay lập tức.";
-            Log::warning("AI detected negative sentiment from user: " . $message);
-        }
+                  "--- DỮ LIỆU CỬA HÀNG (Sản phẩm/Khuyến mãi) ---\n" . $contextData . "\n\n" .
+                  "--- LỊCH SỬ TRAO ĐỔI ---\n" . $historyContext . "\n\n" .
+                  "--- CÂU HỎI MỚI NHẤT ---\n" . $message;
 
         try {
             $response = Http::post($this->apiUrl . '?key=' . $this->apiKey, [
+                'system_instruction' => $systemInstruction,
                 'contents' => [
-                    ['role' => 'user', 'parts' => [['text' => $systemInstruction . "\n\n" . $prompt]]]
+                    ['role' => 'user', 'parts' => [['text' => $prompt]]]
                 ],
                 'generationConfig' => [
                     'temperature' => 0.4,
-                    'maxOutputTokens' => 800,
+                    'maxOutputTokens' => 1024,
                 ]
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
-                return $data['candidates'][0]['content']['parts'][0]['text'] ?? "Tôi đang suy nghĩ, Quý khách vui lòng đợi chút nhé.";
+                
+                if (isset($data['candidates'][0]['content']['parts'])) {
+                    $fullText = "";
+                    foreach ($data['candidates'][0]['content']['parts'] as $part) {
+                        $fullText .= $part['text'] ?? "";
+                    }
+                    return $fullText ?: "Tôi đang suy nghĩ...";
+                }
+                
+                Log::error('Gemini API Structure Error: ' . json_encode($data));
+                return "Tôi đang suy nghĩ, Quý khách vui lòng đợi chút nhé.";
             }
 
             Log::error('Gemini API Error: ' . $response->body());
             
-            // FALLBACK: Nếu AI bận, sử dụng dữ liệu thô từ Database để trả lời cơ bản
+            // FALLBACK
             return $this->generateFallbackResponse($message, $contextData);
         } catch (\Exception $e) {
             Log::error('Gemini Service Exception: ' . $e->getMessage());

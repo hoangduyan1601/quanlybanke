@@ -72,15 +72,7 @@
                         <div class="col-md-4 col-sm-6" id="fav-item-{{ $sp->MaSP }}">
                             <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 transition-all hover-shadow">
                                 <div class="position-relative overflow-hidden group" style="height: 250px;">
-                                    @php
-                                        $imgUrl = 'https://via.placeholder.com/400x400';
-                                        if ($sp->HinhAnh) {
-                                            $imgUrl = asset('assets/images/products/' . $sp->HinhAnh);
-                                        } elseif ($sp->main_image_url) {
-                                            $imgUrl = $sp->main_image_url;
-                                        }
-                                    @endphp
-                                    <img src="{{ $imgUrl }}" class="card-img-top w-100 h-100 object-fit-cover transition-all group-hover-scale" alt="{{ $sp->TenSP }}">
+                                    <img src="{{ $sp->main_image_url }}" class="card-img-top w-100 h-100 object-fit-cover transition-all group-hover-scale" alt="{{ $sp->TenSP }}">
                                     <div class="position-absolute top-0 end-0 p-3">
                                         <button onclick="toggleFavorite({{ $sp->MaSP }}, this, true)" class="btn btn-white btn-sm rounded-circle shadow-sm text-danger" title="Xóa khỏi yêu thích">
                                             <i class="fa-solid fa-heart"></i>

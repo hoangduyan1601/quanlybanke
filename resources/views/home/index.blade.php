@@ -217,7 +217,7 @@
             <div class="col-md-4">
                 <div class="blog-card shadow-sm h-100 border-0 overflow-hidden">
                     <div class="img-wrap position-relative overflow-hidden">
-                        <img src="{{ $bv->HinhAnh ? (Str::startsWith($bv->HinhAnh, 'http') ? $bv->HinhAnh : asset($bv->HinhAnh)) : 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=1000' }}" class="img-fluid w-100" style="height: 250px; object-fit: cover; transition: 0.6s;">
+                        <img src="{{ $bv->HinhAnh ? (Str::startsWith($bv->HinhAnh, 'http') ? $bv->HinhAnh : asset($bv->HinhAnh)) : 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000&auto=format&fit=crop' }}" class="img-fluid w-100" style="height: 250px; object-fit: cover; transition: 0.6s;">
                         <div class="date-badge">{{ \Carbon\Carbon::parse($bv->NgayDang)->format('d/m') }}</div>
                     </div>
                     <div class="p-4 bg-white">

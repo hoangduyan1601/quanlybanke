@@ -47,12 +47,12 @@ class PaymentWebhookController extends Controller
                     // 3. Kiểm tra số tiền (Cho phép sai số nhỏ nếu cần)
                     if ($amount >= $order->TongTien) {
                         
-                        if ($order->TrangThai === 'ChoThanhToan' || $order->TrangThai === 'ChoXacNhan') {
+                        if ($order->TrangThaiDH === 'ChoThanhToan' || $order->TrangThaiDH === 'ChoXacNhan') {
                             DB::beginTransaction();
                             try {
                                 // 4. Cập nhật trạng thái đơn hàng
                                 $order->update([
-                                    'TrangThai' => 'DaXacNhan',
+                                    'TrangThaiDH' => 'DaXacNhan',
                                     'SoTienDaThanhToan' => $amount
                                 ]); // Chuyển sang Đã xác nhận
 
@@ -88,7 +88,7 @@ class PaymentWebhookController extends Controller
                                 $results[] = "Error processing Order #{$orderId}.";
                             }
                         } else {
-                            $results[] = "Order #{$orderId} already processed (Status: {$order->TrangThai}).";
+                            $results[] = "Order #{$orderId} already processed (Status: {$order->TrangThaiDH}).";
                         }
                     } else {
                         $results[] = "Amount mismatch for Order #{$orderId}. Expected {$order->TongTien}, got {$amount}.";

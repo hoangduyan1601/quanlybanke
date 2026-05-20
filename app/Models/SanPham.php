@@ -148,8 +148,8 @@ class SanPham extends Model
         }
 
         if (empty($displayImage)) {
-            // Mặc định ảnh kệ nếu không có ảnh
-            return 'https://images.unsplash.com/photo-1594488630399-bf8351a1ee4d?q=80&w=300&auto=format&fit=crop';
+            // High-quality placeholder for luxury shelves
+            return 'https://images.unsplash.com/photo-1594488630399-bf8351a1ee4d?q=80&w=800&auto=format&fit=crop';
         }
 
         if (filter_var($displayImage, FILTER_VALIDATE_URL)) {

@@ -169,7 +169,7 @@
                                     <div class="icon-box bg-warning-soft text-warning rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 65px; height: 60px;">
                                         <i class="fa-solid fa-star fs-4"></i>
                                     </div>
-                                    <h3 class="fw-bold mb-1 text-dark">{{ $reviews->count() ?? 0 }}</h3>
+                                    <h3 class="fw-bold mb-1 text-dark">{{ $reviewsCount ?? 0 }}</h3>
                                     <p class="text-muted small mb-0 fw-bold ls-1 text-uppercase">Đánh giá của bạn</p>
                                 </div>
                             </a>
@@ -190,20 +190,7 @@
                                 <div class="review-luxury-card p-4 rounded-4 bg-white border mb-4 transition-all hover-shadow">
                                     <div class="d-flex flex-column flex-md-row gap-4">
                                         <div class="review-product-img-wrapper" style="width: 100px; flex-shrink: 0;">
-                                            @php
-                                                $sp = $review->sanpham;
-                                                $imgUrl = 'https://via.placeholder.com/100x150';
-                                                if ($sp) {
-                                                    if ($sp->HinhAnh && strpos($sp->HinhAnh, 'http') === 0) {
-                                                        $imgUrl = $sp->HinhAnh;
-                                                    } elseif ($sp->HinhAnh) {
-                                                        $imgUrl = asset('assets/images/products/' . $sp->HinhAnh);
-                                                    } elseif ($sp->main_image_url) {
-                                                        $imgUrl = $sp->main_image_url;
-                                                    }
-                                                }
-                                            @endphp
-                                            <img src="{{ $imgUrl }}" class="img-fluid rounded-3 shadow-sm border bg-light" alt="{{ $sp->TenSP ?? 'Product' }}" style="height: 120px; object-fit: contain; width: 100%;">
+                                            <img src="{{ $review->sanpham ? $review->sanpham->main_image_url : 'https://via.placeholder.com/100x150' }}" class="img-fluid rounded-3 shadow-sm border bg-light" alt="{{ $review->sanpham->TenSP ?? 'Product' }}" style="height: 120px; object-fit: contain; width: 100%;">
                                         </div>
                                         <div class="flex-grow-1">
                                             <div class="d-flex flex-wrap justify-content-between align-items-start mb-2 gap-2">
@@ -762,16 +749,8 @@
                                     ${(order.chi_tiet_don_hangs).map(item => {
                                         const sp = item.san_pham;
                                         const variant = item.variant;
-                                        let imgUrl = 'https://via.placeholder.com/100x150';
-                                        if (sp) {
-                                            if (sp.HinhAnh && sp.HinhAnh.startsWith('http')) {
-                                                imgUrl = sp.HinhAnh;
-                                            } else if (sp.HinhAnh) {
-                                                imgUrl = '/assets/images/products/' + sp.HinhAnh;
-                                            } else if (sp.main_image_url) {
-                                                imgUrl = sp.main_image_url;
-                                            }
-                                        }
+                                        let imgUrl = sp ? sp.main_image_url : 'https://via.placeholder.com/100x150';
+                                        
                                         if (variant && variant.HinhAnh) {
                                             imgUrl = variant.HinhAnh.startsWith('http') ? variant.HinhAnh : '/assets/images/products/' + variant.HinhAnh;
                                         }

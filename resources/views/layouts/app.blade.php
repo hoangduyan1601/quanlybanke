@@ -118,6 +118,8 @@
         </div>
     </header>
 
+    <div id="search-overlay"></div>
+
     <!-- 3. NAVIGATION BAR -->
     <nav class="header-nav-bar d-none d-md-block">
         <div class="container">
@@ -213,52 +215,80 @@
         document.addEventListener('DOMContentLoaded', () => {
             const searchInput = document.getElementById('main-search-input');
             const suggestionsPanel = document.getElementById('search-suggestions');
+            const searchOverlay = document.getElementById('search-overlay');
 
             if (searchInput && suggestionsPanel) {
                 let debounceTimer;
+
+                const showSuggestions = (html) => {
+                    suggestionsPanel.innerHTML = html;
+                    suggestionsPanel.classList.add('active');
+                    if (searchOverlay) searchOverlay.classList.add('active');
+                };
+
+                const hideSuggestions = () => {
+                    suggestionsPanel.classList.remove('active');
+                    if (searchOverlay) searchOverlay.classList.remove('active');
+                };
+
                 searchInput.addEventListener('input', (e) => {
                     clearTimeout(debounceTimer);
                     const keyword = e.target.value.trim();
                     if (keyword.length < 2) {
-                        suggestionsPanel.classList.remove('active');
+                        hideSuggestions();
                         return;
                     }
                     debounceTimer = setTimeout(() => {
+                        // Show loading state
+                        suggestionsPanel.innerHTML = '<div class="suggestion-empty"><i class="fa-solid fa-circle-notch fa-spin me-2"></i> Đang tìm kiếm...</div>';
+                        suggestionsPanel.classList.add('active');
+                        if (searchOverlay) searchOverlay.classList.add('active');
+
                         fetch(`/san-pham/suggest?keyword=${encodeURIComponent(keyword)}`)
                             .then(res => res.json())
                             .then(data => {
                                 if (data.length > 0) {
-                                    suggestionsPanel.innerHTML = data.map(item => {
+                                    let html = data.map(item => {
                                         const imgUrl = item.main_image_url;
                                         const formattedPrice = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.DonGia);
                                         return `<a href="/san-pham/detail/${item.MaSP}" class="suggestion-item no-barba">
-                                            <img src="${imgUrl}" class="suggestion-img" width="40">
+                                            <img src="${imgUrl}" class="suggestion-img">
                                             <div class="suggestion-info">
                                                 <div class="suggestion-title">${item.TenSP}</div>
                                                 <div class="suggestion-price">${formattedPrice}</div>
                                             </div>
                                         </a>`;
                                     }).join('');
-                                    suggestionsPanel.classList.add('active');
+                                    
+                                    html += `<a href="/san-pham/search?keyword=${encodeURIComponent(keyword)}" class="suggestion-view-all">Xem tất cả kết quả cho "${keyword}"</a>`;
+                                    showSuggestions(html);
                                 } else {
-                                    suggestionsPanel.classList.remove('active');
+                                    showSuggestions(`<div class="suggestion-empty">Không tìm thấy sản phẩm nào cho "<strong>${keyword}</strong>"</div>`);
                                 }
+                            })
+                            .catch(err => {
+                                console.error('Search error:', err);
+                                hideSuggestions();
                             });
                     }, 300);
                 });
+
                 document.addEventListener('click', (e) => {
                     if (!searchInput.contains(e.target) && !suggestionsPanel.contains(e.target)) {
-                        suggestionsPanel.classList.remove('active');
-                        document.getElementById('search-overlay').classList.remove('active');
+                        hideSuggestions();
                     }
                 });
 
                 searchInput.addEventListener('focus', () => {
-                    if (suggestionsPanel.innerHTML.trim() !== '') {
+                    if (searchInput.value.trim().length >= 2 && suggestionsPanel.innerHTML.trim() !== '') {
                         suggestionsPanel.classList.add('active');
-                        document.getElementById('search-overlay').classList.add('active');
+                        if (searchOverlay) searchOverlay.classList.add('active');
                     }
                 });
+
+                if (searchOverlay) {
+                    searchOverlay.addEventListener('click', hideSuggestions);
+                }
             }
         });
     </script>

@@ -17,13 +17,13 @@ class VNPayController extends Controller
     {
         $order = DonHang::findOrFail($orderId);
         
-        $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+        $vnp_Url = config('services.vnpay.url');
         // Lấy return URL từ env, ưu tiên lấy root domain hiện tại (dù là localhost hay ngrok)
         $returnUrlPath = env('VNP_RETURN_URL', '/vnpay-return');
         $vnp_Returnurl = str_starts_with($returnUrlPath, 'http') ? $returnUrlPath : url($returnUrlPath);
         
-        $vnp_TmnCode = "QRCLDBHC"; // config('services.vnpay.tmn_code')
-        $vnp_HashSecret = "RF4CVN1HQL9RY8A1HRS3QX1ENYVQK0ZW"; // config('services.vnpay.hash_secret')
+        $vnp_TmnCode = config('services.vnpay.tmn_code');
+        $vnp_HashSecret = config('services.vnpay.hash_secret');
 
         $vnp_TxnRef = $order->MaDH . '_' . time();
         $vnp_OrderInfo = "Thanh toan don hang " . $order->MaDH;
@@ -112,7 +112,7 @@ class VNPayController extends Controller
             }
         }
 
-        $vnp_HashSecret = "RF4CVN1HQL9RY8A1HRS3QX1ENYVQK0ZW";
+        $vnp_HashSecret = config('services.vnpay.hash_secret');
         $secureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
 
         if ($secureHash == $vnp_SecureHash) {
@@ -162,7 +162,7 @@ class VNPayController extends Controller
             }
         }
 
-        $vnp_HashSecret = "RF4CVN1HQL9RY8A1HRS3QX1ENYVQK0ZW";
+        $vnp_HashSecret = config('services.vnpay.hash_secret');
         $secureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
 
         try {

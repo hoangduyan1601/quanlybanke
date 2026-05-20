@@ -39,13 +39,13 @@ class GeminiService
         $systemInstruction = [
             'parts' => [
                 ['text' => "Bạn là 'Luxury Assistant', chuyên gia tư vấn kệ cao cấp của Luxury Shelf.
-                NHIỆM VỤ CHÍNH: Tư vấn giải pháp không gian và gợi ý sản phẩm phù hợp với nhu cầu Quý khách.
+                NHIỆM VỤ CHÍNH: Tư vấn giải pháp không gian và gợi ý sản phẩm phù hợp.
                 PHONG CÁCH PHẢN HỒI:
-                - Ngắn gọn, súc tích, đi thẳng vào vấn đề.
-                - Chuyên nghiệp, lịch sự (Xưng 'Tôi', gọi 'Quý khách').
-                - Khi tư vấn: Hãy hỏi những câu hỏi gợi mở (kích thước, không gian, mục đích dùng) để đưa ra gợi ý 'đúng gu'.
-                - Trình bày thông tin bằng bullet points để dễ đọc. 
-                - Tuyệt đối không viết quá dài dòng, lan man."]
+                - Ngắn gọn, súc tích, đi thẳng vào câu hỏi của Quý khách.
+                - Tuyệt đối KHÔNG tự ý nhắc đến trạng thái đơn hàng nếu Quý khách không hỏi về nó.
+                - Tập trung 100% vào việc giải đáp câu hỏi hiện tại.
+                - Trình bày bằng bullet points, chuyên nghiệp và lịch sự.
+                - Đảm bảo câu trả lời hoàn chỉnh, không bị ngắt quãng."]
             ]
         ];
 
@@ -59,10 +59,10 @@ class GeminiService
             $historyContext .= "{$role}: {$h['message']}\n";
         }
 
-        $prompt = "--- HỒ SƠ QUÝ KHÁCH ---\n" . $userProfile . "\n\n" .
-                  "--- DỮ LIỆU CỬA HÀNG (Sản phẩm/Khuyến mãi) ---\n" . $contextData . "\n\n" .
+        $prompt = "--- SỞ THÍCH QUÝ KHÁCH ---\n" . $userProfile . "\n\n" .
+                  "--- DỮ LIỆU CỬA HÀNG ---\n" . $contextData . "\n\n" .
                   "--- LỊCH SỬ TRAO ĐỔI ---\n" . $historyContext . "\n\n" .
-                  "--- CÂU HỎI MỚI NHẤT ---\n" . $message;
+                  "--- CÂU HỎI HIỆN TẠI ---\n" . $message;
 
         try {
             $response = Http::post($this->apiUrl . '?key=' . $this->apiKey, [
@@ -72,7 +72,7 @@ class GeminiService
                 ],
                 'generationConfig' => [
                     'temperature' => 0.4,
-                    'maxOutputTokens' => 1024,
+                    'maxOutputTokens' => 4096,
                 ]
             ]);
 
@@ -175,11 +175,13 @@ class GeminiService
             $profile .= "- Không gian/Phòng ưu thích: " . $boughtCats->pluck('TenDM')->implode(', ') . ".\n";
         }
 
-        // 3. Đơn hàng gần đây nhất
+        // 3. Đơn hàng gần đây nhất (Không đưa vào profile mặc định để tránh AI nhắc thừa)
+        /* 
         $lastOrder = DonHang::where('MaKH', $maKH)->orderBy('NgayDat', 'desc')->first();
         if ($lastOrder) {
             $profile .= "- Trạng thái đơn hàng gần nhất (#{$lastOrder->MaDH}): {$lastOrder->TrangThaiDH}.\n";
         }
+        */
 
         return $profile;
     }
